@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "main-inventory-system"
+version = "0.1.0"
+description = ""
+authors = ["Braden Lamb <braden.lamb5@icloud.com>"]
+readme = "README.md"
+packages = [{include = "main_inventory_system"}]
+
+[tool.poetry.dependencies]
+python = ">=3.8.0,<3.11"
+numpy = "^1.22.2"
+replit = "^3.2.4"
+Flask = "^2.2.0"
+urllib3 = "^1.26.12"
+pandas = "^1.5.2"
+ipython = "^8.8.0"
+
+[tool.poetry.scripts]
+inventory = "main_inventory_system.main:main"
+
+[tool.poetry.dev-dependencies]
+debugpy = "^1.6.2"
+replit-python-lsp-server = {extras = ["yapf", "rope", "pyflakes"], version = "^1.5.9"}
+
+[build-system]
