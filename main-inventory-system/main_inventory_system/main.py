@@ -13,13 +13,16 @@ def server():
 	txt = fd.read()
 	data = json.loads(txt)
 	fd.close()
-	s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	# Bind the socket to the port
-	ip = "127.0.0.1"
+	# ip = "127.0.0.1"
+	ip = "172.20.10.5"
 	port = 5555
 	server_address = (ip, port)
 	s.bind(server_address)
 	while True:
+		s.listen()
+		conn, addr = s.accept()
 		print("####### Server is listening #######")
 		#quantity = str(float(data['1001']['quantity']))
 		quantity = int(data["1001"]["quantity"])
@@ -27,14 +30,14 @@ def server():
 		data['1001']['quantity'] = str(float(data['1001']['quantity'])-1.0)
 		#quantity = str(float(data['1001']['quantity']))
 		print(quantity)
-		data, address = s.recvfrom(4096)
+		data = conn.recv(4096)
 		print("\n\n 2. Server received: ", data.decode('utf-8'), "\n\n")
-		if(data.decode('utf-8') == "broken"):
+		if(data.decode('utf-8') == "dispensed"):
 			print("if worked")
 			#data[1001]['quantity'] = str(float(data[1001]['quantity'])-1.0)
 			#quantity = str(float(data['1001']['quantity']))
 		send_data = "50\n"
-		s.sendto(send_data.encode('utf-8'), address)
+		conn.send(send_data.encode('utf-8'))
 		print("\n\n 1. Server sent : ", send_data,"\n\n")
 	js = json.dumps(data)
 	fd = open("data.json", 'w')
