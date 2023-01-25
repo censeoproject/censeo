@@ -12,7 +12,7 @@ def server():
 	fd = open("data.json", 'r')
 	txt = fd.read()
 	data = json.loads(txt)
-	fd.close() #necessary?
+	fd.close()
 	s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 	# Bind the socket to the port
 	ip = "127.0.0.1"
@@ -21,17 +21,25 @@ def server():
 	s.bind(server_address)
 	while True:
 		print("####### Server is listening #######")
-		quantity = str(float(data['1001']['quantity'])-1.0)
+		#quantity = str(float(data['1001']['quantity']))
+		quantity = int(data["1001"]["quantity"])
 		print(quantity)
 		data['1001']['quantity'] = str(float(data['1001']['quantity'])-1.0)
+		#quantity = str(float(data['1001']['quantity']))
 		print(quantity)
 		data, address = s.recvfrom(4096)
 		print("\n\n 2. Server received: ", data.decode('utf-8'), "\n\n")
-		#if(data.decode('utf-8') == "broken"):
+		if(data.decode('utf-8') == "broken"):
+			print("if worked")
 			#data[1001]['quantity'] = str(float(data[1001]['quantity'])-1.0)
+			#quantity = str(float(data['1001']['quantity']))
 		send_data = "50\n"
 		s.sendto(send_data.encode('utf-8'), address)
 		print("\n\n 1. Server sent : ", send_data,"\n\n")
+	js = json.dumps(data)
+	fd = open("data.json", 'w')
+	fd.write(js)
+	fd.close()
 
 
 """def server():
@@ -569,7 +577,7 @@ def remove_supply():
 					if (key == 0):
 						print("Enter Quantity of Supply " +
 							str(i+1)+" that you want to buy")
-						quantity = intput()
+						quantity = input()
 						if (float(quantity) <= float(data[id]['quantity'])):
 							data[id]['quantity'] = str(
 								float(data[id]['quantity'])-float(quantity))
