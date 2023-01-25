@@ -19,6 +19,8 @@ def server():
 	port = 5555
 	server_address = (ip, port)
 	s.bind(server_address)
+	s.listen()
+	conn, addr = s.accept()		
 	while True:
 		print("####### Server is listening #######")
 		#quantity = str(float(data['1001']['quantity']))

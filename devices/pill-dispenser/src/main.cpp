@@ -51,9 +51,12 @@ void setup() {
     Serial.print(".");
   }
 
-	Serial.print("connected.");
+	Serial.print("Connected to Wifi.");
 	Serial.print("IP:");
 	Serial.println(WiFi.localIP());
+
+  client.connect(inventoryServerIp, inventoryServerPort);
+  Serial.print("Connected to inventory management server.");
 }
 
 void loop(){
@@ -82,11 +85,11 @@ void loop(){
   } 
   if (!sensorState && lastState) {
     Serial.println("Broken");
-    client.connect(inventoryServerIp, inventoryServerPort);
+    
     client.println("pill dispensed");
     Serial.println("pill dispensed");
     client.flush();
-    client.stop();
+    //client.stop();
   }
   lastState = sensorState;
 }
