@@ -1,0 +1,51 @@
+#include <ESP8266WiFi.h>
+#include <WiFiUdp.h>
+
+#ifndef STASSID
+#define STASSID "iPhone"
+#define STAPSK  "r3m3mb3r"
+#endif
+
+const char* ssid = STASSID;
+const char* password = STAPSK;
+
+// UDP
+WiFiUDP UDP;
+char packet[255];
+char reply[] = "Packet received!";
+
+IPAddress remoteIP(172,20,10,2);
+unsigned int remotePort = 5555;
+
+void setup_2(){
+  Serial.begin(115200);
+  Serial.println("****************");
+	// Connect to WiFi network
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(ssid, password);
+  Serial.println("");
+
+  // Wait for connection
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+	Serial.print("connected.");
+	Serial.print("IP:");
+	Serial.println(WiFi.localIP());
+  //Serial.println("Puerto Serial OK");
+  //Ethernet.begin(mac,ip);
+  //Serial.print("IP : ");
+  //Serial.println(Ethernet.localIP());
+  //Udp.begin(localport);
+}
+
+void loop_2(){
+	UDP.beginPacket(remoteIP, remotePort);
+	UDP.println("DispenserA decrement");
+  Serial.println("Message sent");
+  int retval = UDP.endPacket();
+	Serial.println("endPacket");
+  delay(5000);
+}
