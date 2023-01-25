@@ -16,8 +16,9 @@ char reply[] = "Packet received!";
 
 IPAddress remoteIP(172,20,10,5);
 const char* phoneIp = "172.20.10.5";
-const unsigned int phonePort = 5556;
+const unsigned int phonePort = 7777;
 unsigned int remotePort = 5556;
+WiFiUDP udp;
 
 void setup(){
   Serial.begin(115200);
@@ -41,14 +42,25 @@ void setup(){
   //Ethernet.begin(mac,ip);
   //Serial.print("IP : ");
   //Serial.println(Ethernet.localIP());
-  //Udp.begin(localport);
+  udp.begin(3456);
 }
-WiFiUDP udp;
 void loop() {
-	udp.beginPacket(phoneIp, phonePort);
-	udp.println("DispenserA decrement");
-  Serial.println("Message sent");
-  int retval = udp.endPacket();
-	Serial.println("endPacket");
+  int pingResult = WiFi.ping(phoneIp);
+  WiFiClient client;
+  client.connect("172.20.10.5", 7777);
+  client.println("hello!");
+  Serial.println("hello!");
+  client.flush();
+  client.stop();
+  //Serial.println("pingResult:");
+  //Serial.println(pingResult);
+	//Serial.println("beginPacket:"); 
+  //Serial.println(udp.beginPacket(phoneIp, phonePort));
+  //udp.write("dispense");
+	//udp.println("DispenserA decrement");
+  //Serial.println("Message sent");
+  //int retval = udp.endPacket();
+	//Serial.println("endPacket");
+  //Serial.println(retval);
   delay(5000);
 }
