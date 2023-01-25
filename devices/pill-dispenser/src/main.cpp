@@ -1,5 +1,16 @@
 #include <Arduino.h>
+#include <WiFiNINA.h>
+#include <WiFiUdp.h>
 
+#ifndef STASSID
+#define STASSID "iPhone"
+#define STAPSK  "r3m3mb3r"
+#endif
+
+const char* ssid = STASSID;
+const char* password = STAPSK;
+const char* inventoryServerIp = "172.20.10.5";
+const unsigned int inventoryServerPort = 5555;
 
 #define LEDPIN 13
   // Pin 13: Arduino has an LED connected on pin 13
@@ -11,14 +22,14 @@
 
 // variables will change:
 int sensorState = 0, lastState=0;         // variable for reading the pushbutton status
-int pills = 50;
 
 // include the library code:
 
 // initialize the library with the numbers of the interface pins
 
-  
-void setup2() {
+WiFiClient client;
+
+void setup() {
   // initialize the LED pin as an output:
   pinMode(LEDPIN, OUTPUT);      
   // initialize the sensor pin as an input:
@@ -30,9 +41,22 @@ void setup2() {
   digitalWrite(SENSORPIN, HIGH); // turn on the pullup
   
   Serial.begin(115200);
+
+  WiFi.begin(ssid, password);
+  Serial.println("");
+
+  // Wait for connection
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+	Serial.print("connected.");
+	Serial.print("IP:");
+	Serial.println(WiFi.localIP());
 }
 
-void loop2(){
+void loop(){
   // read the state of the pushbutton value:
   sensorState = digitalRead(SENSORPIN);
  
@@ -46,7 +70,7 @@ void loop2(){
   if (sensorState == LOW) {     
     // turn LED on:
     digitalWrite(LEDPIN, HIGH); 
-    digitalWrite(16, HIGH);
+    digitalWrite(11, HIGH);
   } 
   else {
     // turn LED off:
@@ -58,10 +82,11 @@ void loop2(){
   } 
   if (!sensorState && lastState) {
     Serial.println("Broken");
-    pills = pills - 1;
-    Serial.print("pills = ");
-    Serial.println(pills);
-    
+    client.connect(inventoryServerIp, inventoryServerPort);
+    client.println("pill dispensed");
+    Serial.println("pill dispensed");
+    client.flush();
+    client.stop();
   }
   lastState = sensorState;
 }
