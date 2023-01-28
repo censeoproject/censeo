@@ -28,11 +28,11 @@ def server():
     # listen for incoming connections
     s.listen()
     print("####### Server is listening #######")
+    # block and wait for a new incoming connection
+    conn = s.accept()
+    print("####### Server accepted connection #######")
 
     while True:
-        # block and wait for a new incoming connection
-        conn = s.accept()
-        print("####### Server accepted connection #######")
         # quantity = str(float(data['1001']['quantity']))
         # quantity = int(data["1001"]["quantity"])
         # print(quantity)
@@ -46,6 +46,8 @@ def server():
         supplyID = msg.decode('utf-8').rstrip().lstrip()
         msg = conn[0].recv(4096)
         event = msg.decode('utf-8').rstrip().lstrip()
+        msg = conn[0].recv(4096)
+        value = msg.decode('utf-8').rstrip().lstrip()
         print("\n2. Server received: %s Event: %s\n" % (supplyID, event))
 
         if (event == "dispensed"):
@@ -56,65 +58,60 @@ def server():
             print("New quantity = %s" % newQuantity)
             conn[0].sendall(("%s" % newQuantity).encode('utf-8'))
             print("\n\n 1. Server sent : %s\n\n" % newQuantity)
-        conn[0].close()
-
-
-"""def server():
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    # Bind the socket to the port
-    ip = "127.0.0.1"
-    port = 5555
-    server_address = (ip, port)
-    s.bind(server_address) 
-    while True:
-        print("####### Server is listening #######")
-		#print("test")
-		#quantity = str(float(data[1001]['quantity'])-1.0)
-		#print(quantity)
-		#data[1001]['quantity'] = str(float(data[1001]['quantity'])-1.0)
-		#print(quantity)
-        data, address = s.recvfrom(4096)
-        print("\n\n 2. Server received: ", data.decode('utf-8'), "\n\n")
-		#if(data.decode('utf-8') == "broken"):
-			#data[1001]['quantity'] = str(float(data[1001]['quantity'])-1.0)
-        send_data = "50\n"
-        s.sendto(send_data.encode('utf-8'), address)
-        print("\n\n 1. Server sent : ", send_data,"\n\n")"""
+        elif (event == "refilled"):
+            # Add standard refill amount to quantity
+            refillSize = data[supplyID]['refillSize']
+            currQuantity = data[supplyID]['quantity']
+            newQuantity = currQuantity+refillSize
+            data[supplyID]['quantity'] = newQuantity
+            print("New quantity = %s" % newQuantity)
+            conn[0].sendall(("%s" % newQuantity).encode('utf-8'))
+            print("\n\n 1. Server sent : %s\n\n" % newQuantity)
+        elif (event == "calculated"):
+            # Replace current quantity with the newly calculated quantity
+            currQuantity = data[supplyID]['quantity']
+            newQuantity = value
+            data[supplyID]['quantity'] = newQuantity
+            print("New quantity = %s" % newQuantity)
+            conn[0].sendall(("%s" % newQuantity).encode('utf-8'))
+            print("\n\n 1. Server sent : %s\n\n" % newQuantity)
+        else:
+            conn[0].close()
 
 
 # Creating Dictionary to store data
-available_supplies = {1001: {"name": "Cream 1",
-                             "category": "cream",
-                             "quantity": 10, "date": "01/01/2023"},
-                      1002: {"name": "Pill 1",
+available_supplies = {1001: {"name": "Pill 1",
                              "category": "pill",
-                             "quantity": 100,
+                             "quantity": 200, "refillSize": 100, "date": "01/01/2023"},
+                      1002: {"name": "Cream 1",
+                             "category": "cream",
+                             "quantity": 100, "refillSize": 50,
                              "date": "01/01/2023"},
                       1003: {"name": "Bandage",
                              "category": "other",
-                             "quantity": 200, "date": "01/01/2023"},
+                             "quantity": 50, "refillSize": 25, "date": "01/01/2023"},
                       1004: {"name": "Cream 2",
                              "category": "cream",
-                             "quantity": 50, "date": "01/01/2023"},
+                             "quantity": 50, "refillSize": 25, "date": "01/01/2023"},
                       1005: {"name": "Pill 2",
                              "category": "pill",
-                             "quantity": 100,
+                             "quantity": 100, "refillSize": 50,
                              "date": "01/01/2023"},
                       1006: {"name": "Cream 3",
                              "category": "cream",
-                             "quantity": 56, "date": "01/01/2023"},
+                             "quantity": 75, "refillSize": 25, "date": "01/01/2023"},
                       1007: {"name": "Pill 3",
                              "category": "pill",
-                             "quantity": 70,
+                             "quantity": 70, "refillSize": 50,
                              "date": "01/01/2023"},
                       1008: {"name": "Cream 4",
                              "category": "cream",
-                             "quantity": 90, "date": "01/01/2023"},
+                             "quantity": 90, "refillSize": 50, "date": "01/01/2023"},
                       1009: {"name": "Pill 4",
                              "category": "pill",
-                             "quantity": 50, "date": "01/01/2023"},
+                             "quantity": 50, "refillSize": 10, "date": "01/01/2023"},
                       1010: {"name": "Cream 5",
-                             "category": "cream", "quantity": 60,
+                             "category": "cream", "quantity": 60, "refillSize": 40,
                              "date": "01/01/2023"},
                       }
 
