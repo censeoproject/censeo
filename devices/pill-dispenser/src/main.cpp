@@ -1,15 +1,14 @@
 #include <Arduino.h>
 #include <WiFiNINA.h>
-#include <WiFiUdp.h>
 
 #ifndef STASSID
-#define STASSID "iPhone"
+#define STASSID "shouji"
 #define STAPSK  "r3m3mb3r"
 #endif
 
 const char* ssid = STASSID;
 const char* password = STAPSK;
-const char* inventoryServerIp = "172.20.10.5";
+const char* inventoryServerIp = "172.20.10.2";
 const unsigned int inventoryServerPort = 5555;
 
 #define LEDPIN 13
@@ -55,8 +54,6 @@ void setup() {
 	Serial.print("IP:");
 	Serial.println(WiFi.localIP());
 
-  client.connect(inventoryServerIp, inventoryServerPort);
-  Serial.print("Connected to inventory management server.");
 }
 
 void loop(){
@@ -86,10 +83,14 @@ void loop(){
   if (!sensorState && lastState) {
     Serial.println("Broken");
     
-    client.println("pill dispensed");
-    Serial.println("pill dispensed");
+  	client.connect(inventoryServerIp, inventoryServerPort);
+  	Serial.print("Connected to inventory system.");
+    client.println("dispensed");
+    Serial.println("dispensed");
     client.flush();
-    //client.stop();
+    client.stop();
+  	Serial.print("Disconnected from inventory system.");
   }
+
   lastState = sensorState;
 }
