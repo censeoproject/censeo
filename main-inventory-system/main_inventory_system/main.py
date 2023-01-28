@@ -19,6 +19,9 @@ def server():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     # Bind the socket to the port
     ip = "127.0.0.1"
+    if len(sys.argv) > 1:
+        ip = sys.argv[1]
+    print(ip)
     port = 5555
     server_address = (ip, port)
     s.bind(server_address)
@@ -40,10 +43,11 @@ def server():
         # the supply ID
         # and the event that happened (like "dispensed")
         msg = conn[0].recv(4096)
-        supplyID = msg.decode('utf-8').rstrip()
+        supplyID = msg.decode('utf-8').rstrip().lstrip()
         msg = conn[0].recv(4096)
-        event = msg.decode('utf-8').rstrip()
-        print("\n\n 2. Server received: ", supplyID, "\n\n")
+        event = msg.decode('utf-8').rstrip().lstrip()
+        print("\n2. Server received: %s Event: %s\n" % (supplyID, event))
+
         if (event == "dispensed"):
             # Subtract one from the current quantity
             currQuantity = data[supplyID]['quantity']
