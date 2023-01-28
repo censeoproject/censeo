@@ -1,1 +1,62 @@
-{"1001": {"name": "Cream 1", "category": "cream", "quantity": 10, "date": "01/01/2023"}, "1002": {"name": "Pill 1", "category": "pill", "quantity": 100, "date": "01/01/2023"}, "1003": {"name": "Bandage", "category": "other", "quantity": 200, "date": "01/01/2023"}, "1004": {"name": "Cream 2", "category": "cream", "quantity": 50, "date": "01/01/2023"}, "1005": {"name": "Pill 2", "category": "pill", "quantity": 100, "date": "01/01/2023"}, "1006": {"name": "Cream 3", "category": "cream", "quantity": 56, "date": "01/01/2023"}, "1007": {"name": "Pill 3", "category": "pill", "quantity": 70, "date": "01/01/2023"}, "1008": {"name": "Cream 4", "category": "cream", "quantity": 90, "date": "01/01/2023"}, "1009": {"name": "Pill 4", "category": "pill", "quantity": 50, "date": "01/01/2023"}, "1010": {"name": "Cream 5", "category": "cream", "quantity": 60, "date": "01/01/2023"}}
+{
+    "1001": {
+        "name": "Cream 1",
+        "category": "cream",
+        "quantity": 10,
+        "date": "01/01/2023"
+    },
+    "1002": {
+        "name": "Pill 1",
+        "category": "pill",
+        "quantity": 100,
+        "date": "01/01/2023"
+    },
+    "1003": {
+        "name": "Bandage",
+        "category": "other",
+        "quantity": 200,
+        "date": "01/01/2023"
+    },
+    "1004": {
+        "name": "Cream 2",
+        "category": "cream",
+        "quantity": 50,
+        "date": "01/01/2023"
+    },
+    "1005": {
+        "name": "Pill 2",
+        "category": "pill",
+        "quantity": 100,
+        "date": "01/01/2023"
+    },
+    "1006": {
+        "name": "Cream 3",
+        "category": "cream",
+        "quantity": 56,
+        "date": "01/01/2023"
+    },
+    "1007": {
+        "name": "Pill 3",
+        "category": "pill",
+        "quantity": 70,
+        "date": "01/01/2023"
+    },
+    "1008": {
+        "name": "Cream 4",
+        "category": "cream",
+        "quantity": 90,
+        "date": "01/01/2023"
+    },
+    "1009": {
+        "name": "Pill 4",
+        "category": "pill",
+        "quantity": 50,
+        "date": "01/01/2023"
+    },
+    "1010": {
+        "name": "Cream 5",
+        "category": "cream",
+        "quantity": 60,
+        "date": "01/01/2023"
+    }
+}
