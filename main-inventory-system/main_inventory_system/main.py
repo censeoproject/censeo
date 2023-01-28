@@ -26,9 +26,9 @@ def server():
 		conn = s.accept()
 		print("####### Server accepted connection #######")
 		#quantity = str(float(data['1001']['quantity']))
-		quantity = int(data["1001"]["quantity"])
-		print(quantity)
-		data['1001']['quantity'] = str(float(data['1001']['quantity'])-1.0)
+		#quantity = int(data["1001"]["quantity"])
+		#print(quantity)
+		#data['1001']['quantity'] = str(float(data['1001']['quantity'])-1.0)
 		#quantity = str(float(data['1001']['quantity']))
 		print(quantity)
 		data = conn[0].recv(4096)
@@ -40,12 +40,10 @@ def server():
 		send_data = "50\n"
 		conn[0].sendall(send_data.encode('utf-8'))
 		print("\n\n 1. Server sent : ", send_data,"\n\n")
-		print("\n #### closing connection ####")
-		conn[0].close()
-	js = json.dumps(data)
-	fd = open("data.json", 'w')
-	fd.write(js)
-	fd.close()
+	#js = json.dumps(data)
+	#fd = open("data.json", 'w')
+	#fd.write(js)
+	#fd.close()
 
 
 """def server():
