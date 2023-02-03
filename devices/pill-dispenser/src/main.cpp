@@ -3,8 +3,8 @@
 #include <WiFiUdp.h>
 
 #ifndef STASSID
-#define STASSID "shouji"
-#define STAPSK "r3m3mb3r"
+#define STASSID "iPhone"
+#define STAPSK "Janner06"
 #endif
 
 const char *ssid = STASSID;
@@ -53,23 +53,23 @@ void setup()
 	digitalWrite(SENSORPIN, HIGH); // turn on the pullup
 	digitalWrite(REFILLPIN, LOW);	 // turn off the refill led
 	digitalWrite(REFILLBUTTON, HIGH);
-	Serial.begin(9600);
-	while (!Serial)
+	//Serial.begin(9600);
+	//while (!Serial)
 		; // only works on 33 IOT
 
 	WiFi.begin(ssid, password);
-	Serial.println("");
+	//Serial.println("");
 
 	// Wait for connection
 	while (WiFi.status() != WL_CONNECTED)
 	{
 		delay(500);
-		Serial.print(".");
+		//Serial.print(".");
 	}
 
-	Serial.print("Connected to Wifi.");
-	Serial.print("IP:");
-	Serial.println(WiFi.localIP());
+	//Serial.print("Connected to Wifi.");
+	//Serial.print("IP:");
+	//Serial.println(WiFi.localIP());
 	Udp.begin(5555);
 }
 
@@ -89,19 +89,19 @@ void loop()
 		// turn LED on:
 		digitalWrite(ledPin, HIGH);
 		Udp.beginPacket(inventoryServerIp, inventoryServerPort);
-		Serial.println("Begin packet");
-		Serial.println("1001|refilled|0");
+		//Serial.println("Begin packet");
+		//Serial.println("1001|refilled|0");
 		Udp.println("1001|refilled|0");
 		Udp.endPacket();
 		previousButtonState = 0;
 		while (!Udp.parsePacket())
 		{
-			Serial.print('.');
+			//Serial.print('.');
 			delay(100);
 		}
 		String msg = Udp.readString();
-		Serial.print("msg = ");
-		Serial.println(msg);
+		//Serial.print("msg = ");
+		//Serial.println(msg);
 		int newQuantity = msg.toInt();
 		if (newQuantity <= 5)
 		{
@@ -138,23 +138,23 @@ void loop()
 
 	if (sensorState && !lastState)
 	{
-		Serial.println("Unbroken");
+		//Serial.println("Unbroken");
 	}
 	if (!sensorState && lastState)
 	{
 		Udp.beginPacket(inventoryServerIp, inventoryServerPort);
-		Serial.println("Begin dispense packet");
-		Serial.println("1001|dispensed|0");
+		//Serial.println("Begin dispense packet");
+		//Serial.println("1001|dispensed|0");
 		Udp.println("1001|dispensed|0");
 		Udp.endPacket();
 		while (!Udp.parsePacket())
 		{
-			Serial.print('.');
+			//Serial.print('.');
 			delay(100);
 		}
 		String msg = Udp.readStringUntil('\n');
-		Serial.print("msg = ");
-		Serial.println(msg);
+		//Serial.print("msg = ");
+		//Serial.println(msg);
 		int newQuantity = msg.toInt();
 		if (newQuantity <= 5)
 		{
