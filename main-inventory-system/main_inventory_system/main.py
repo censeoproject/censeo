@@ -7,6 +7,7 @@ import socket
 import sys
 import _thread
 import time
+import logging
 
 data = []
 
@@ -15,6 +16,11 @@ def server():
     fd = open("data.json", "r")
     data = json.loads(fd.read())
     fd.close()
+
+    # open a log file to log communications
+
+    logging.basicConfig(filename="server.log", filemode="a", level=logging.INFO)
+
     # open a tcp socket
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     # Bind the socket to the port
@@ -26,14 +32,14 @@ def server():
     s.bind(server_address)
     # listen for incoming connections
     # s.listen()
-    print("####### Server is bound #######")
+    logging.info("####### Server is bound #######")
     # block and wait for a new incoming connection
     # conn = s.accept()
     # print("####### Server accepted connection #######")
 
     while True:
         # block and wait for a new incoming connection
-        print("####### Server is listening #######")
+        logging.info("####### Server is listening #######")
         msg, address = s.recvfrom(4096)
         # conn = s.accept()
         # print("####### Server accepted connection #######")
@@ -41,42 +47,44 @@ def server():
         # the supply ID
         # and the event that happened (like "dispensed")
         # msg = conn[0].recv(4096)
-        print("Received %s" % msg)
+        logging.info("Received %s" % msg)
         message = msg.decode("utf-8").rstrip().lstrip()
         parts = message.split("|", 3)
         supplyID = parts[0]
         event = parts[1]
         value = parts[2]
-        print("\nServer received: %s Event: %s Value: %s\n" % (supplyID, event, value))
+        logging.info(
+            "\nServer received: %s Event: %s Value: %s\n" % (supplyID, event, value)
+        )
 
         if event == "dispensed":
             # Subtract one from the current quantity
             currQuantity = data[supplyID]["quantity"]
             newQuantity = currQuantity - 1
             data[supplyID]["quantity"] = newQuantity
-            print("New quantity = %s" % newQuantity)
+            logging.info("New quantity = %s" % newQuantity)
             s.sendto(("%s" % newQuantity).encode("utf-8"), address)
             # conn[0].send(("%s" % newQuantity).encode("utf-8"))
-            print("\n\n 1. Server sent : %s\n\n" % newQuantity)
+            logging.info("\n\n 1. Server sent : %s\n\n" % newQuantity)
         elif event == "refilled":
             # Add standard refill amount to quantity
             refillSize = data[supplyID]["refillSize"]
             currQuantity = data[supplyID]["quantity"]
             newQuantity = currQuantity + refillSize
             data[supplyID]["quantity"] = newQuantity
-            print("New quantity = %s" % newQuantity)
+            logging.info("New quantity = %s" % newQuantity)
             # conn[0].send(("%s" % newQuantity).encode("utf-8"))
             s.sendto(("%s" % newQuantity).encode("utf-8"), address)
-            print("\n\n 1. Server sent : %s\n\n" % newQuantity)
+            logging.info("\n\n 1. Server sent : %s\n\n" % newQuantity)
         elif event == "calculated":
             # Replace current quantity with the newly calculated quantity
             currQuantity = data[supplyID]["quantity"]
             newQuantity = value
             data[supplyID]["quantity"] = newQuantity
-            print("New quantity = %s" % newQuantity)
+            logging.info("New quantity = %s" % newQuantity)
             # conn[0].send(("%s" % newQuantity).encode("utf-8"))
             s.sendto(("%s" % newQuantity).encode("utf-8"), address)
-            print("\n\n 1. Server sent : %s\n\n" % newQuantity)
+            logging.info("\n\n 1. Server sent : %s\n\n" % newQuantity)
         # else:
         #    s.close()
 
@@ -205,7 +213,6 @@ def overall():
 
 
 def display_data():
-
     fd = open("data.json", "r")
     txt = fd.read()  # reading data from file
     data = json.loads(txt)
@@ -225,7 +232,6 @@ def display_data():
 
         # Creating Pandas dataframe to show data in table format later
         for i in data.keys():
-
             # Fetch all keys in dictionary
             temp = pd.DataFrame(columns=["ID"])
             temp["ID"] = [i]
@@ -239,7 +245,6 @@ def display_data():
         display(table)
 
     elif n == 0:
-
         # Display Records by Category
         table = pd.DataFrame(columns=["ID", "name", "category", "quantity", "date"])
         cat = []
@@ -547,7 +552,6 @@ def user():
 
 
 def display_user_data():
-
     if os.path.isfile("user_data.json") is False:
         print("No User Reports are Present")
         return
@@ -609,7 +613,6 @@ def generate_bill(
 
 
 def remove_supply():
-
     if os.path.isfile("user_data.json") is False:
         user_data = {}
     else:
