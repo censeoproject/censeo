@@ -9,16 +9,9 @@ import _thread
 import time
 import logging
 
-data = []
-
 
 def server():
-    fd = open("data.json", "r")
-    data = json.loads(fd.read())
-    fd.close()
-
     # open a log file to log communications
-
     logging.basicConfig(filename="server.log", filemode="a", level=logging.INFO)
 
     # open a tcp socket
@@ -57,6 +50,10 @@ def server():
             "\nServer received: %s Event: %s Value: %s\n" % (supplyID, event, value)
         )
 
+        fd = open("data.json", "r")
+        data = json.loads(fd.read())
+        fd.close()
+
         if event == "dispensed":
             # Subtract one from the current quantity
             currQuantity = data[supplyID]["quantity"]
@@ -87,6 +84,10 @@ def server():
             logging.info("\n\n 1. Server sent : %s\n\n" % newQuantity)
         # else:
         #    s.close()
+        js = json.dumps(data)
+        fd = open("data.json", "w")
+        fd.write(js)
+        fd.close()
 
 
 # Creating Dictionary to store data
@@ -764,10 +765,6 @@ def main():
         elif n == 2:
             user()
         elif n == 3:
-            js = json.dumps(data)
-            fd = open("data.json", "w")
-            fd.write(js)
-            fd.close()
             break
         else:
             print("Invalid Choice...!!!")
