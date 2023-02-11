@@ -188,7 +188,7 @@ def overall():
     while 1:
         print("1)Display DataBase/All Supplies with their details")
         print("2)Display Certain Supply with its details")
-        print("3)Insert Data Into DataBase")
+        print("3)Add New Supply to DataBase")
         print("4)Update Supply in Database")
         print("5)Delete Supply in DataBase")
         print("6)Display User Reports")
@@ -222,8 +222,7 @@ def display_data():
     # Python dictionary with the data
     fd.close()
     print(
-        "Enter '0' to order data by category or '1' \
-	to order data by the time it was added to the system :- "
+        "Enter '0' to order data by category or '1' to order data by the time it was added to the system :- "
     )
     n = int(input())
 
@@ -295,8 +294,7 @@ def display_specific_data():
         display(temp)
     else:
         print(
-            "You Have Entered Wrong Supply ID\
-		that is not Present in DataBase...!!!"
+            "That Supply ID is not Present in DataBase...!!!"
         )
 
 
@@ -325,8 +323,7 @@ def add_new():
             "date": date,
         }
         print(
-            "Please Press '0' to Add New\
-		Attributes/Properties of Supply or Press '1' to Continue :- "
+            "Please Press '0' to Add New Attributes/Properties of Supply or Press '1' to Continue :- "
         )
         z = int(input())
         if z == 0:
@@ -341,8 +338,7 @@ def add_new():
         print("Supply ID " + str(id) + " Added Successfully...!!!")
     else:
         print(
-            "The Supply ID you Have Entered Is\
-		Already Present in DataBase Please Check...!!!"
+            "The Supply ID you Have Entered Is Already Present in DataBase...!!!"
         )
     js = json.dumps(data)
     fd = open("data.json", "w")
@@ -380,15 +376,13 @@ def update_prod_data():
     data = json.loads(txt)
     fd.close()
     print(
-        "Enter The Supply ID of The Supply\
-	Which You Want To Update :- "
+        "Enter The Supply ID of The Supply Which You Want To Update :- "
     )
     temp = input()
 
     if temp in data.keys():
         print(
-            "Want to update whole supply data\
-		press '0' else '1' for specific data :- "
+            "To update each supply attribute, enter '0'; For one specific attribute, enter '1' :- "
         )
         q = int(input())
 
@@ -400,8 +394,7 @@ def update_prod_data():
             print("Enter Quantity of Supply :- ")
             quantity = input()
             print(
-                "Enter The Date on Which Supply\
-			is Added in Inventory :- "
+                "Enter the date that the supply was added to the inventory :- "
             )
             date = input()
             data[temp] = {
@@ -459,7 +452,7 @@ def update_prod_data():
 def display_reports_overall():
     if os.path.isfile("user_data.json") is False:
         # Check for if file is present or not
-        # File will be generated only if any user will do some purchase
+        # File will be generated only if any user records usage
         print("No User Reports are Present")
         return
     fd = open("user_data.json", "r")
@@ -467,8 +460,7 @@ def display_reports_overall():
     user_data = json.loads(txt)
     fd.close()
     print(
-        "Enter '0' to Check All User Reports\
-	and '1' To Check Specific User Reports :- "
+        "Enter '0' to Check All User Reports or '1' To Check the Reports of One Specific User :- "
     )
     n = int(input())
     if n == 1:
@@ -531,10 +523,10 @@ def delete_all():
 def user():
     print("======= NASA Hunch Inventory Management System ====")
     while 1:
-        print("1)Display All Supplies With Details")
-        print("2)Display Certain Supply With Details")
-        print("3)Display All Previous Records")
-        print("4)Record Usage")
+        print("1)Display all supplies with details")
+        print("2)Display certain supply with details")
+        print("3)Display all of your previous records")
+        print("4)Record usage")
         print("5)Exit")
         print("Enter Your Choice :- ")
         n = int(input())
@@ -694,20 +686,17 @@ def remove_supply():
                     )
                 else:
                     print(
-                        "The Quantity You Have Asked is Quite High Than\
-						That is Available in Stock"
+                        "The quantity entered exceeds the available quantity of the supply"
                     )
                     print(
-                        "Did you Want To buy According to The Quantity\
-						Available in Stock then Enter '0' Else '1'\
-						to skip This Supply"
+                        "Enter '0' to use the maximum amount of supply. Enter '1' to skip this supply and move on."
                     )
                     key = int(input())
                     if key == 0:
                         print(
                             "Enter Quantity of Supply "
                             + str(i + 1)
-                            + " that you want to buy"
+                            + " that you used"
                         )
                         quantity = input()
                         if float(quantity) <= float(data[id]["quantity"]):
@@ -755,8 +744,8 @@ def main():
 
     while 1:
         print("Choose Any One of The Following :- ")
-        print("1)Manage Overall Inventory")
-        print("2)Record Specific Use")
+        print("1)Manage Overall Inventory (Mission Control)")
+        print("2)Record Specific Use (Astronauts)")
         print("3)Exit")
         print("Enter Your Choice Here :- ")
         n = int(input())
