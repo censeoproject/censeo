@@ -96,7 +96,7 @@ available_supplies = {
         "name": "Pill 1",
         "category": "pill",
         "quantity": 10,
-        "refillSize": 100,
+        "refillSize": 10,
         "date": "01/01/2023",
     },
     1002: {
