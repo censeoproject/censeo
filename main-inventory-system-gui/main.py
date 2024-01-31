@@ -135,6 +135,21 @@ async def connecttoPillDevice():
         while True:
             await asyncio.sleep(0.001)
 
+refreshRequested = False
+
+def refreshHome(home):
+    print("Refreshing home...")
+    time.sleep(0.1)
+    home.refresh()
+    refreshRequested = False
+
+def refreshRequest(home):
+    if refreshRequested:
+        return
+    
+    refreshRequested = True
+    t = Thread(target=refreshHome, args=[home])
+    t.start()
 
 #class Supply:
 #    def __init__(self, id, name, category, quantity, refillSize, date):
