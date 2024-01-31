@@ -16,6 +16,7 @@ from threading import Thread
 from bleak import BleakClient
 import struct
 
+
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("dark-blue")
 
@@ -110,19 +111,30 @@ fd.close()  # Close File After Inserting Data'''
 
 user_id = 0
 isLoggedIn = False
-
 tableRows = 0
 tableCols = 0
 bandage_connected = False
+pill_dispenser = False
 
-async def connectDevices():
+async def connecttoBandageDevice():
     async with BleakClient("58:BF:25:9C:4E:C6") as client:
         await client.start_notify("19b10001-e8f2-537e-4f6c-d104768a1214", handle_rotation_change)
-        print("connected")
+        await client.start_notify("19B10002-E8F2-537E-4F6C-D104768A1214", handle_reset_change)
+        
+        print("connected to Bandage Device")
         bandage_connected = True
-        # Continuously run the loop
+        # Continuously run the loop while True:
         while True:
             await asyncio.sleep(0.001)
+
+async def connecttoPillDevice():
+    async with BleakClient("08:B6:1F:81:42:AE") as client:
+        print("connected to Pill Device")
+        await client.start_notify("19b10004-e8f2-537e-4f6c-d104768a1214", handle_Dispensed_change)
+        pill_dispenser = True
+        while True:
+            await asyncio.sleep(0.001)
+
 
 #class Supply:
 #    def __init__(self, id, name, category, quantity, refillSize, date):
@@ -294,102 +306,73 @@ class RecordUse(ctk.CTkToplevel):
             data = json.loads(txt)
             fd.close()
 
-            if isinstance(tempNameid, int):
-                print("except")
+            try:
+                tempNameid = int(tempNameid)
+            except:
+                print("name")
                 name = tempNameid
                 self.name = name
 
-                if tempQuantAdd!=(""): # Checking quantAdd
-                    try:
-                        quantAdd = int(tempQuantAdd)
-                    except:
-                        print("Error: Quantity Added should be an int")
-                    else:
-                        quantAdd = int(tempQuantAdd)
-                        self.quantAdd = quantAdd
-                else:
-                    quantAdd = 0
-                    self.quantAdd = quantAdd
-
-                if tempQuantRem!=(""): # Checking quantRem
-                    try:
-                        quantRem = int(tempQuantRem)
-                    except:
-                        print("Error: Quantity Removed should be an int")
-                    else:
-                        quantRem = int(tempQuantRem)
-                        self.quantRem = quantRem
-                else:
-                    quantRem = 0
-                    self.quantRem = quantRem
-
-                self.recordUse()
-
-            else:
-                print("else")
-                name = tempNameid
-                self.name = name
-
+                found = False
                 for i in data.keys():
                     if data[str(i)]["name"] == name:
                         id = i
                         self.id = id
+                        found = True
+                if (not found):
+                    print("Error: Supply name or ID not recognized")
+                    self.cancel()
+            else:
+                print("id")
+                id = tempNameid
+                self.id = id
 
-                if tempQuantAdd!=(""): # Checking quantAdd
-                    try:
-                        quantAdd = int(tempQuantAdd)
-                    except:
-                        print("Error: Quantity Added should be an int")
-                    else:
-                        quantAdd = int(tempQuantAdd)
-                        self.quantAdd = quantAdd
+            if tempQuantAdd!=(""): # Checking quantAdd
+                try:
+                    quantAdd = int(tempQuantAdd)
+                except:
+                    print("Error: Quantity Added should be an int")
+                    self.cancel()
                 else:
-                    quantAdd = 0
+                    quantAdd = int(tempQuantAdd)
                     self.quantAdd = quantAdd
+            else:
+                quantAdd = 0
+                self.quantAdd = quantAdd
 
-                if tempQuantRem!=(""): # Checking quantRem
-                    try:
-                        quantRem = int(tempQuantRem)
-                    except:
-                        print("Error: Quantity Removed should be an int")
-                    else:
-                        quantRem = int(tempQuantRem)
-                        self.quantRem = quantRem
+            if tempQuantRem!=(""): # Checking quantRem
+                try:
+                    quantRem = int(tempQuantRem)
+                except:
+                    print("Error: Quantity Removed should be an int")
+                    self.cancel()
                 else:
-                    quantRem = 0
+                    quantRem = int(tempQuantRem)
                     self.quantRem = quantRem
+            else:
+                quantRem = 0
+                self.quantRem = quantRem
 
-                self.recordUse()
-
+            self.recordUse()
         else:
             print("Error: please enter a supply name or id")
+            self.cancel()
 
     def recordUse(self):
         print("recordUse")
 
-        fd = open("data.json", "r")
-        txt = fd.read()
-        data = json.loads(txt)
-        fd.close()
-
-        deltaQuant = self.quantAdd - self.quantRem
-        self.deltaQuant = deltaQuant
-
-        # ADJUST JSON
-        id = self.id
-        currQuant = data[str(id)]["quantity"]
-        newQuant = currQuant + deltaQuant
-        data[str(id)]["quantity"] = newQuant
+        addToData(self.id, "quantity", self.quantAdd-self.quantRem)
 
         self.withdraw()
         global home
         home.deiconify()
+        home.refresh()
 
-        js = json.dumps(data)
-        fd = open("data.json", "w")
-        fd.write(js)
-        fd.close()
-
+    def cancel(self):
+        print("cancel")
+        self.withdraw()
+        global home
+        home.deiconify()
         home.refresh()
 
 
@@ -820,8 +803,6 @@ class Home(ctk.CTk):
             self.table.insert(ctk.END, str(lastEdited))
             self.table.configure(state="disabled")
 
-        
-
         js = json.dumps(data)
         fd = open("data.json", "w")
         fd.write(js)
@@ -863,32 +844,90 @@ class Home(ctk.CTk):
         error = solve1[1]+solve2[1]
         print(solution)
 
-
-def handle_rotation_change(sender, data):
-    rotation = struct.unpack('<L', data)
-
-    print(rotation[0])
+def replaceData(itemID, itemDataType, newData): #replaces a data entry in data.json with a new value
+    #third parameter should be the same variable type as the existing entry in data.json
+    
     fd = open("data.json", "r")
     txt = fd.read()
     data = json.loads(txt)
     fd.close()
 
-    data["3"]["quantity"] = rotation[0]
+    data[str(itemID)][str(itemDataType)] = newData
 
     js = json.dumps(data)
     fd = open("data.json", "w")
     fd.write(js)
     fd.close()
 
+
+def addToData(itemID, itemDataType, deltaData): #adds deltaData to the existing data entry
+    #Only for data entries that are integers (like quantity)
+
+    fd = open("data.json", "r")
+    txt = fd.read()
+    data = json.loads(txt)
+    fd.close()
+
+    data[str(itemID)][str(itemDataType)] += deltaData
+
+    js = json.dumps(data)
+    fd = open("data.json", "w")
+    fd.write(js)
+    fd.close()
+
+
+def readData(itemID, itemDataType): #returns the data entry under itemID and itemDataType
+    fd = open("data.json", "r")
+    txt = fd.read()
+    data = json.loads(txt)
+    fd.close()
+
+    dataRead = data[str(itemID)][str(itemDataType)]
+
+    js = json.dumps(data)
+    fd = open("data.json", "w")
+    fd.write(js)
+    fd.close()
+
+    return dataRead
+
+def handle_rotation_change(sender, data):
+    rotation = struct.unpack('<L', data)
+    print(rotation[0])
+    replaceData("3", "quantity", rotation[0])
+    
     home.refresh()
 
+def handle_reset_change(sender, data):
+    print(data)
+    reset = struct.unpack('<b', data)
+    print(reset[0])
+    replaceData("3", "quantity", 0)
+    home.refresh()
 
-def asyncioThread():
-    asyncio.run(connectDevices())
+def handle_Dispensed_change(sender, data):
+    print(data)
+    Dispensed = struct.unpack('<b', data)
+    print(Dispensed[0])
+    currentQuantity = int(readData("2", "quantity"))
+    print("currentQuantity=%s" % currentQuantity)
+    currentQuantity = currentQuantity - 1
+    replaceData("2", "quantity", str(currentQuantity))
+    
+    home.refresh()
+
+def bandageThread():
+    asyncio.run(connecttoBandageDevice())
+
+def pillThread():
+    asyncio.run(connecttoPillDevice())
 
 if __name__ == "__main__":
-    t = Thread(target=asyncioThread)
-    t.start()
+    t1 = Thread(target = bandageThread)
+    t1.start()
+
+    t2 = Thread(target = pillThread)
+    t2.start()
 
     home = Home()
     home.mainloop()
