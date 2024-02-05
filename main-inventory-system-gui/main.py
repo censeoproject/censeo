@@ -119,7 +119,7 @@ pill_dispenser = False
 async def connecttoBandageDevice():
     async with BleakClient("58:BF:25:9C:4E:C6") as client:
         await client.start_notify("19b10001-e8f2-537e-4f6c-d104768a1214", handle_rotation_change)
-        await client.start_notify("19B10002-E8F2-537E-4F6C-D104768A1214", handle_reset_change)
+        await client.start_notify("19B10002-E8F2-537E-4F6C-D104768A1214", handle_bandage_reset_change)
         
         print("connected to Bandage Device")
         bandage_connected = True
@@ -131,6 +131,7 @@ async def connecttoPillDevice():
     async with BleakClient("08:B6:1F:81:42:AE") as client:
         print("connected to Pill Device")
         await client.start_notify("19b10004-e8f2-537e-4f6c-d104768a1214", handle_Dispensed_change)
+        await client.start_notify("19b10005-e8f2-537e-4f6c-d104768a1214", handle_Pill_reset_change)
         pill_dispenser = True
         while True:
             await asyncio.sleep(0.001)
@@ -913,11 +914,12 @@ def handle_rotation_change(sender, data):
     
     home.refresh()
 
-def handle_reset_change(sender, data):
+def handle_bandage_reset_change(sender, data):
     print(data)
     reset = struct.unpack('<b', data)
     print(reset[0])
     replaceData("3", "quantity", 0)
+
     home.refresh()
 
 def handle_Dispensed_change(sender, data):
@@ -929,6 +931,13 @@ def handle_Dispensed_change(sender, data):
     currentQuantity = currentQuantity - 1
     replaceData("2", "quantity", str(currentQuantity))
     
+    home.refresh()
+
+def handle_Pill_reset_change(sender, data):
+    print(data)
+    Pill_reset = struct.unpack('<b', data)
+    print(Pill_reset[0])
+    replaceData("2", "quantity", 50)
     home.refresh()
 
 def bandageThread():

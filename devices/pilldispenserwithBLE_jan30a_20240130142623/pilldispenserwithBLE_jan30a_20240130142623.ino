@@ -10,17 +10,21 @@
 // Pin 13: Teensy 3.0 has the LED on pin 13
 
 #define SENSORPIN 7
-#define REFILLPIN 8
-#define buttonPin 9
 
-const int REFILLBUTTON = 2; // the number of the pushbutton pin
+
+
 const int ledPin = 5;
 // variables will change :
-int buttonState = 0;
-int sensorState = 0, lastState=0;  // variable for reading the pushbutton status
-int previousButtonState = 1;
-int newQuantity = 4;
+const int buttonPin = 6;
+int buttonState;
+int lastButtonState = LOW;
+bool buttonPressed = false;
+int sensorState = 0, lastState=0;  
 bool dispensed = false;
+
+unsigned long lastDebounceTime = 0;  // the last time the output pin was toggled
+unsigned long debounceDelay = 50;    // the debounce time; increase if the output flickers
+
 
 // Add characteristics for bluetooth
 BLEService PillService("19B10003-E8F2-537E-4F6C-D104768A1214"); // BLE LED Service
@@ -37,16 +41,14 @@ void setup() {
 	pinMode(SENSORPIN, INPUT);
 	// initialize the digital pin 12 as an output.
 	pinMode(12, OUTPUT);
-	// initialize the digital pin 3 as an output.
-	pinMode(REFILLPIN, OUTPUT);
 	// initialize the LED pin as an output
 	pinMode(ledPin, OUTPUT);
 	// initialize the pushbutton pin as an input
-	pinMode(REFILLBUTTON, INPUT_PULLUP);
+
+  pinMode (buttonPin,INPUT);
 
 	digitalWrite(SENSORPIN, HIGH); // turn on the pullup
-	digitalWrite(REFILLPIN, LOW);	 // turn off the refill led
-	digitalWrite(REFILLBUTTON, HIGH);
+
 	BLEDevice peripheral = BLE.available();
   Serial.begin(9600);
   BLE.begin();
@@ -55,6 +57,7 @@ void setup() {
   BLE.setAdvertisedService(PillService);
   // add the characteristic to the service
   PillService.addCharacteristic(DispensedCharacteristic);
+  PillService.addCharacteristic(PillResetCharacteristic);
   //PillService.addCharacteristic(PillResetCharacteristic);
   // add service
   BLE.addService(PillService);
@@ -70,58 +73,40 @@ void loop()
   BLEDevice central = BLE.central(); 
 	// read the state of the pushbutton value:
 	sensorState = digitalRead(SENSORPIN);
-	// read the state of the pushbutton value
-	buttonState = digitalRead(REFILLBUTTON);
-	// 0 represents button down
-	// 1 means button up
 
 	// check if the pushbutton is pressed
 	// if it is, the buttonState is HIGH
-	if (buttonState == HIGH && previousButtonState == 1)
-	{
-		// turn LED on:
-		digitalWrite(ledPin, HIGH);
-		Serial.println("1001|refilled|0");
-		
-		previousButtonState = 0;
-	
-		//if (newQuantity <= 5)
-		//{
-		//	digitalWrite(REFILLPIN, HIGH);
-		//}
-		//else
-		//{
-		//	digitalWrite(REFILLPIN, LOW);
-		//}
-	}
-	else if (buttonState == LOW && previousButtonState == 0)
-	{
-		previousButtonState = 1;
+	 int reading = digitalRead(buttonPin);
 
-	}
-	else
-	{
-		// turn LED off:
-		digitalWrite(ledPin, LOW);
-	}
+  // check to see if you just pressed the button
+  // (i.e. the input went from LOW to HIGH), and you've waited long enough
+  // since the last press to ignore any noise:
 
-	// check if the sensor beam is broken
-	// if it is, the sensorState is LOW:
-	
-  // read the state of the pushbutton value:
-  sensorState = digitalRead(SENSORPIN);
-
-  // check if the sensor beam is broken
-  // if it is, the sensorState is LOW:
-  if (sensorState == LOW) {     
-    // turn LED on:
-    digitalWrite(LEDPIN, HIGH);  
-  } 
-  else {
-    // turn LED off:
-    digitalWrite(LEDPIN, LOW); 
+  // If the switch changed, due to noise or pressing:
+  if (reading != lastButtonState) {
+    // reset the debouncing timer
+    lastDebounceTime = millis();
   }
-  
+
+  if ((millis() - lastDebounceTime) > debounceDelay) {
+    // whatever the reading is at, it's been there for longer than the debounce
+    // delay, so take it as the actual current state:
+
+    // if the button state has changed:
+    if (reading != buttonState) {
+      buttonState = reading;
+
+      // only toggle the LED if the new button state is HIGH
+      if (buttonState == HIGH) {
+        Serial.println("11Button Pressed!");
+        buttonPressed = true;
+      }
+    }
+  }
+  // save the reading. Next time through the loop, it'll be the lastButtonState:
+  lastButtonState = reading;
+
+
   if (sensorState && !lastState) {
     Serial.println("Unbroken");
     dispensed = false;
@@ -132,13 +117,15 @@ void loop()
   }
   lastState = sensorState;
 
-  Serial.println(central);
-  Serial.println(central)
   if (central && central.connected()) {
     if (dispensed) {
-        DispensedCharacteristic.writeValue((byte)0x01);
-        Serial.println("test");
-        dispensed = false;
+      DispensedCharacteristic.writeValue((byte)0x01);
+      dispensed = false;
+    }
+    if(buttonPressed) {
+      PillResetCharacteristic.writeValue((byte)0x01);
+      buttonPressed = false;
+
     }
   }
 }
