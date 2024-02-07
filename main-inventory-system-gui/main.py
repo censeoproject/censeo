@@ -136,6 +136,14 @@ async def connecttoPillDevice():
         while True:
             await asyncio.sleep(0.001)
 
+async def connecttoCreamMeasurer():
+    async with BleakClient("30:C6:F7:02:FD:52") as client:
+        print("connected to Cream Measurer")
+        await client.start_notify("19b10007-e8f2-537e-4f6c-d104768a1214", handle_Distance_change)
+        Cream_Measurer = True
+        while True:
+            await asyncio.sleep(0.001)
+
 refreshRequested = False
 
 def refreshHome(home):
@@ -1018,11 +1026,21 @@ def handle_Pill_reset_change(sender, data):
     replaceData("2", "quantity", 50)
     home.refresh()
 
+def handle_Distance_change(sender, data):
+    print(data)
+    Moved = struct.unpack('<L', data)
+    print(Moved)
+    replaceData("1", "quantity", Moved)
+    home.refresh()
+
 def bandageThread():
     asyncio.run(connecttoBandageDevice())
 
 def pillThread():
     asyncio.run(connecttoPillDevice())
+
+def creamThread():
+    asyncio.run(connecttoCreamMeasurer())
 
 def calcBandage(increments):
     diameter = 24 #mm
@@ -1038,6 +1056,9 @@ if __name__ == "__main__":
 
     t2 = Thread(target = pillThread)
     t2.start()
-
+    
+    t3 = Thread(target = creamThread)
+    t3.start()
+    
     home = Home()
     home.mainloop()
