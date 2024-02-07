@@ -430,6 +430,7 @@ class AddItem(ctk.CTkToplevel):
 
 
     def confirm(self):
+        global home
         name = self.nameEntry.get()
         self.name = name
         tempQuantity = self.quantityEntry.get() #tempQuantity will be a string
@@ -449,7 +450,7 @@ class AddItem(ctk.CTkToplevel):
                     quantity = int(tempQuantity)
                     self.quantity = quantity
                     print("Confirmed")
-                    self.addItem()
+                    home.addItem()
             else:
                 print("Error: Please enter a value for quantity.")
         elif not isinstance(name, str):
@@ -457,38 +458,15 @@ class AddItem(ctk.CTkToplevel):
         elif name==(""):
             print("Error: Please enter a value for name.")
 
-    
-    def addItem(self):
-        print("addItem")
 
-        fd = open("data.json", "r")
-        txt = fd.read()
-        data = json.loads(txt)
-        fd.close()
-
-        id = 1
-        for i in data.keys():
-            id+=1
-
-        data[id] = {
-            "name": self.name,
-            "category": self.category,
-            "quantity": self.quantity,
-            "date": self.date,
-        }
-
-        print(data[id]["name"])
-
-        self.withdraw()
-        global home
-        home.deiconify()
-
-        js = json.dumps(data)
-        fd = open("data.json", "w")
-        fd.write(js)
-        fd.close()
-
-        home.refresh()
+    def getName(self):
+        return self.name
+    def getQuantity(self):
+        return self.quantity
+    def getCategory(self):
+        return self.category
+    def getDate(self):
+        return self.date
 
 
 class RemoveItem(ctk.CTkToplevel):
@@ -625,52 +603,64 @@ class Home(ctk.CTk):
         #Data Table
 
         #Remove Buttons
+        self.removeButtons = []
         for i in data.keys():
-            self.button = ctk.CTkButton(master=scrollFrame, text="-", command=lambda:self.enterRemoveItem(int(i)), font=(main_font, 20), fg_color="#0b5394", width=30)
-            self.button.grid(row=i, column=1, padx=(70,5))
+            removeButton = ctk.CTkButton(master=scrollFrame, text="-", command=lambda:self.enterRemoveItem(int(i)), font=(main_font, 20), fg_color="#0b5394", width=30)
+            removeButton.grid(row=i, column=1, padx=(70,5))
+            self.removeButtons.append(removeButton)
 
         #Supply IDs
+        self.idEntries = []
         for i in data.keys():
-            self.table = ctk.CTkEntry(scrollFrame, width=100, font=(main_font, 14))
-            self.table.grid(row=i, column=2, padx=5)
-            self.table.insert(ctk.END, str(i))
-            self.table.configure(state="disabled")
+            table = ctk.CTkEntry(scrollFrame, width=100, font=(main_font, 14))
+            table.grid(row=i, column=2, padx=5)
+            table.insert(ctk.END, str(i))
+            table.configure(state="disabled")
+            self.idEntries.append(table)
 
         #Names
+        self.nameEntries = []
         for i in data.keys():
-            self.table = ctk.CTkEntry(scrollFrame, width=100, font=(main_font, 14))
-            self.table.grid(row=i, column=3, padx=5)
+            table = ctk.CTkEntry(scrollFrame, width=100, font=(main_font, 14))
+            table.grid(row=i, column=3, padx=5)
             supplyID = i
             name = data[supplyID]["name"]
-            self.table.insert(ctk.END, str(name))
-            self.table.configure(state="disabled")
+            table.insert(ctk.END, str(name))
+            table.configure(state="disabled")
+            self.nameEntries.append(table)
 
         #Quantities
+        self.quantityEntries = []
         for i in data.keys():
-            self.table = ctk.CTkEntry(scrollFrame, width=100, font=(main_font, 14))
-            self.table.grid(row=i, column=4, padx=5)
+            table = ctk.CTkEntry(scrollFrame, width=100, font=(main_font, 14))
+            table.grid(row=i, column=4, padx=5)
             supplyID = i
             quantity = data[supplyID]["quantity"]
-            self.table.insert(ctk.END, str(quantity))
-            self.table.configure(state="disabled")
+            table.insert(ctk.END, str(quantity))
+            table.configure(state="disabled")
+            self.quantityEntries.append(table)
 
         #Categories
+        self.categoryEntries = []
         for i in data.keys():
-            self.table = ctk.CTkEntry(scrollFrame, width=100, font=(main_font, 14))
-            self.table.grid(row=i, column=5, padx=(5))
+            table = ctk.CTkEntry(scrollFrame, width=100, font=(main_font, 14))
+            table.grid(row=i, column=5, padx=(5))
             supplyID = i
             category = data[supplyID]["category"]
-            self.table.insert(ctk.END, str(category))
-            self.table.configure(state="disabled")
+            table.insert(ctk.END, str(category))
+            table.configure(state="disabled")
+            self.categoryEntries.append(table)
 
         #Last Edited Dates
+        self.lastEditedEntries = []
         for i in data.keys():
-            self.table = ctk.CTkEntry(scrollFrame, width=100, font=(main_font, 14))
-            self.table.grid(row=i, column=6, padx=5)
+            table = ctk.CTkEntry(scrollFrame, width=100, font=(main_font, 14))
+            table.grid(row=i, column=6, padx=5)
             supplyID = i
             lastEdited = data[supplyID]["date"]
-            self.table.insert(ctk.END, str(lastEdited))
-            self.table.configure(state="disabled")
+            table.insert(ctk.END, str(lastEdited))
+            table.configure(state="disabled")
+            self.lastEditedEntries.append(table)
         
 
         # CREATING WIDGETS FOR FRAME2
@@ -774,50 +764,57 @@ class Home(ctk.CTk):
         scrollFrame = self.scrollFrame
         main_font = self.main_font
 
-        #Data Table
-
         #Supply IDs
-        for i in data.keys():
-            self.table = ctk.CTkEntry(scrollFrame, width=100, font=(main_font, 14))
-            self.table.grid(row=i, column=1, padx=(110,5))
-            self.table.insert(ctk.END, str(i))
-            self.table.configure(state="disabled")
-
+        for i in range(len(data.keys())):
+            idEntry = self.idEntries[i]
+            idEntry.configure(state="normal")
+            idEntry.delete(0, len(idEntry.get()))
+            idEntry.insert(ctk.END, readID(i))
+            idEntry.configure(state="disabled")
+            
         #Names
-        for i in data.keys():
-            self.table = ctk.CTkEntry(scrollFrame, width=100, font=(main_font, 14))
-            self.table.grid(row=i, column=2, padx=5)
-            supplyID = i
-            name = data[supplyID]["name"]
-            self.table.insert(ctk.END, str(name))
-            self.table.configure(state="disabled")
+        for i in range(len(self.nameEntries)):
+            nameEntry = self.nameEntries[i]
+            nameEntry.configure(state="normal")
+            nameEntry.delete(0, len(nameEntry.get()))
+            for j in data.keys():
+                if (str(i+1)==j):
+                    id = j
+            nameEntry.insert(ctk.END, data[id]["name"])
+            nameEntry.configure(state="disabled")
 
         #Quantities
-        for i in data.keys():
-            self.table = ctk.CTkEntry(scrollFrame, width=100, font=(main_font, 14))
-            self.table.grid(row=i, column=3, padx=5)
-            supplyID = i
-            quantity = data[supplyID]["quantity"]
-            self.table.insert(ctk.END, str(quantity))
-            self.table.configure(state="disabled")
+        for i in range(len(self.quantityEntries)):
+            quantityEntry = self.quantityEntries[i]
+            quantityEntry.configure(state="normal")
+            quantityEntry.delete(0, len(quantityEntry.get()))
+            for j in data.keys():
+                if (str(i+1)==j):
+                    id = j
+            quantityEntry.insert(ctk.END, data[id]["quantity"])
+            quantityEntry.configure(state="disabled")
 
         #Categories
-        for i in data.keys():
-            self.table = ctk.CTkEntry(scrollFrame, width=100, font=(main_font, 14))
-            self.table.grid(row=i, column=4, padx=(5))
-            supplyID = i
-            category = data[supplyID]["category"]
-            self.table.insert(ctk.END, str(category))
-            self.table.configure(state="disabled")
+        for i in range(len(self.categoryEntries)):
+            categoryEntry = self.categoryEntries[i]
+            categoryEntry.configure(state="normal")
+            categoryEntry.delete(0, len(categoryEntry.get()))
+            for j in data.keys():
+                if (str(i+1)==j):
+                    id = j
+            categoryEntry.insert(ctk.END, data[id]["category"])
+            categoryEntry.configure(state="disabled")
 
         #Last Edited Dates
-        for i in data.keys():
-            self.table = ctk.CTkEntry(scrollFrame, width=100, font=(main_font, 14))
-            self.table.grid(row=i, column=5, padx=5)
-            supplyID = i
-            lastEdited = data[supplyID]["date"]
-            self.table.insert(ctk.END, str(lastEdited))
-            self.table.configure(state="disabled")
+        for i in range(len(self.lastEditedEntries)):
+            lastEditedEntry = self.lastEditedEntries[i]
+            lastEditedEntry.configure(state="normal")
+            lastEditedEntry.delete(0, len(lastEditedEntry.get()))
+            for j in data.keys():
+                if (str(i+1)==j):
+                    id = j
+            lastEditedEntry.insert(ctk.END, data[id]["date"])
+            lastEditedEntry.configure(state="disabled")
 
         js = json.dumps(data)
         fd = open("data.json", "w")
@@ -825,16 +822,6 @@ class Home(ctk.CTk):
         fd.close()
 
     def update(self):
-        fd = open("data.json", "r")
-        txt = fd.read()
-        data = json.loads(txt)
-        fd.close()
-
-        js = json.dumps(data)
-        fd = open("data.json", "w")
-        fd.write(js)
-        fd.close()
-
         self.refresh()
 
     def calculate(self):
@@ -859,6 +846,80 @@ class Home(ctk.CTk):
         solution = 4*(solve1[0]-solve2[0])/1000
         error = solve1[1]+solve2[1]
         print(solution)
+
+    def addItem(self):
+        print("addItem")
+
+        fd = open("data.json", "r")
+        txt = fd.read()
+        data = json.loads(txt)
+        fd.close()
+
+        global addItem
+        scrollFrame = self.scrollFrame
+        main_font = self.main_font
+
+        data[str(len(data.keys())+1)] = {
+            "name": self.addItem_window.getName(),
+            "category": self.addItem_window.getCategory(),
+            "quantity": self.addItem_window.getQuantity(),
+            "date": self.addItem_window.getDate(),
+        }
+
+        r = len(data.keys())
+        id = str(r)
+
+        removeButton = ctk.CTkButton(master=scrollFrame, text="-", command=lambda:self.enterRemoveItem(r), font=(main_font, 20), fg_color="#0b5394", width=30)
+        removeButton.grid(row=r, column=1, padx=(70,5))
+
+        idTable = ctk.CTkEntry(self.scrollFrame, width=100, font=(self.main_font, 14))
+        idTable.grid(row=r, column=2, padx=5)
+        idTable.insert(ctk.END, id)
+        idTable.configure(state="disabled")
+        self.idEntries.append(idTable)
+
+        nameTable = ctk.CTkEntry(scrollFrame, width=100, font=(main_font, 14))
+        nameTable.grid(row=r, column=3, padx=5)
+        supplyID = id
+        name = data[supplyID]["name"]
+        nameTable.insert(ctk.END, str(name))
+        nameTable.configure(state="disabled")
+        self.nameEntries.append(nameTable)
+
+        quantityTable = ctk.CTkEntry(scrollFrame, width=100, font=(main_font, 14))
+        quantityTable.grid(row=r, column=4, padx=5)
+        supplyID = id
+        quantity = data[supplyID]["quantity"]
+        quantityTable.insert(ctk.END, str(quantity))
+        quantityTable.configure(state="disabled")
+        self.quantityEntries.append(quantityTable)
+
+        categoryTable = ctk.CTkEntry(scrollFrame, width=100, font=(main_font, 14))
+        categoryTable.grid(row=r, column=5, padx=(5))
+        supplyID = id
+        category = data[supplyID]["category"]
+        categoryTable.insert(ctk.END, str(category))
+        categoryTable.configure(state="disabled")
+        self.categoryEntries.append(categoryTable)
+
+        lastEditedTable = ctk.CTkEntry(scrollFrame, width=100, font=(main_font, 14))
+        lastEditedTable.grid(row=r, column=6, padx=5)
+        supplyID = id
+        lastEdited = data[supplyID]["date"]
+        lastEditedTable.insert(ctk.END, str(lastEdited))
+        lastEditedTable.configure(state="disabled")
+        self.lastEditedEntries.append(lastEditedTable)
+
+        self.addItem_window.withdraw()
+        self.deiconify()
+
+        js = json.dumps(data)
+        fd = open("data.json", "w")
+        fd.write(js)
+        fd.close()
+
+        self.refresh()
+
 
 def replaceData(itemID, itemDataType, newData): #replaces a data entry in data.json with a new value
     #third parameter should be the same variable type as the existing entry in data.json
@@ -907,6 +968,23 @@ def readData(itemID, itemDataType): #returns the data entry under itemID and ite
 
     return dataRead
 
+
+def readID(i): #returns the id of the ith item
+    fd = open("data.json", "r")
+    txt = fd.read()
+    data = json.loads(txt)
+    fd.close()
+
+    keys = list(data.keys())
+
+    js = json.dumps(data)
+    fd = open("data.json", "w")
+    fd.write(js)
+    fd.close()
+
+    return keys[i]
+
+
 def handle_rotation_change(sender, data):
     rotation = struct.unpack('<L', data)
     print(rotation[0])
@@ -945,6 +1023,14 @@ def bandageThread():
 
 def pillThread():
     asyncio.run(connecttoPillDevice())
+
+def calcBandage(increments):
+    diameter = 24 #mm
+    pi = 3.141
+    incrementsPerRotation = 30
+    incrementLength = diameter*pi/incrementsPerRotation
+    deltaLength = incrementLength*increments
+    return deltaLength
 
 if __name__ == "__main__":
     t1 = Thread(target = bandageThread)
