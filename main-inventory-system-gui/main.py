@@ -487,8 +487,12 @@ class RemoveItem(ctk.CTkToplevel):
         removeItemFrame = ctk.CTkFrame(master=self)
         removeItemFrame.pack(pady=20, padx=60, fill="both", expand=True)
 
-        label = ctk.CTkLabel(master=removeItemFrame, text="Remove item from inventory?", font=("Roboto-Black", 26))
+        label = ctk.CTkLabel(master=removeItemFrame, text="Type Item ID to Confirm Removal", font=("Roboto-Black", 26))
         label.pack(pady=(32,20), padx=15)
+
+        entry = ctk.CTkEntry(master=removeItemFrame, placeholder_text="Item ID")
+        entry.pack(pady=12, padx=15)
+        self.entry = entry
 
         confirmButton = ctk.CTkButton(master=removeItemFrame, text="Confirm", command=self.confirm)
         confirmButton.pack(pady=12, padx=10)
@@ -502,23 +506,22 @@ class RemoveItem(ctk.CTkToplevel):
         data = json.loads(txt)
         fd.close()
 
-        print("Enter The Supply ID of The Supply Which You Want To Delete :- ")
-        temp = input()
-        if temp in data.keys():
-            data.pop(temp)  # here we are removing that particular data
-            print("Supply ID " + str(temp) + " Deleted Successfully...!!!")
+        id = self.entry.get()
+        if id in data.keys():
+            global home
+            data.pop(id)
+            home.deleteDataRow(id)
+
+            self.withdraw()
+            home.deiconify()
+            home.refresh()
         else:
-            print("Invalid Supply ID...!!!")
+            print("Invalid Supply ID")
+
         js = json.dumps(data)
         fd = open("data.json", "w")
         fd.write(js)
         fd.close()
-
-        self.withdraw()
-        global home
-        home.deiconify()
-
-        home.refresh()
 
     def cancel(self):
         self.withdraw()
@@ -613,7 +616,7 @@ class Home(ctk.CTk):
         #Remove Buttons
         self.removeButtons = []
         for i in data.keys():
-            removeButton = ctk.CTkButton(master=scrollFrame, text="-", command=lambda:self.enterRemoveItem(int(i)), font=(main_font, 20), fg_color="#0b5394", width=30)
+            removeButton = ctk.CTkButton(master=scrollFrame, text="-", command=self.enterRemoveItem, font=(main_font, 20), fg_color="#0b5394", width=30)
             removeButton.grid(row=i, column=1, padx=(70,5))
             self.removeButtons.append(removeButton)
 
@@ -695,6 +698,8 @@ class Home(ctk.CTk):
 
         self.recordUse_window = None
 
+        self.removeItem_window = None
+
         js = json.dumps(data)
         fd = open("data.json", "w")
         fd.write(js)
@@ -758,8 +763,16 @@ class Home(ctk.CTk):
         else:
             print("Please log in before adding item")
 
-    def enterRemoveItem(self, row):
-        print(row)
+    def enterRemoveItem(self):
+        global isLoggedIn
+        if isLoggedIn:
+            if self.removeItem_window is None or not self.removeItem_window.winfo_exists():
+                self.removeItem_window = RemoveItem(self)  # create window if its None or destroyed
+            else:
+                self.removeItem_window.deiconify()
+                self.removeItem_window.focus()  # if window exists focus it
+        else:
+            print("Please log in before removing item")
 
     def refresh(self):
         print("Refresh")
@@ -773,7 +786,7 @@ class Home(ctk.CTk):
         main_font = self.main_font
 
         #Supply IDs
-        for i in range(len(data.keys())):
+        for i in range(len(self.idEntries)):
             idEntry = self.idEntries[i]
             idEntry.configure(state="normal")
             idEntry.delete(0, len(idEntry.get()))
@@ -927,6 +940,20 @@ class Home(ctk.CTk):
         fd.close()
 
         self.refresh()
+
+    def deleteDataRow(self, i):
+        self.removeButtons[int(i)-1].destroy()
+        del self.removeButtons[int(i)-1]
+        self.idEntries[int(i)-1].destroy()
+        del self.idEntries[int(i)-1]
+        self.nameEntries[int(i)-1].destroy()
+        del self.nameEntries[int(i)-1]
+        self.categoryEntries[int(i)-1].destroy()
+        del self.categoryEntries[int(i)-1]
+        self.quantityEntries[int(i)-1].destroy()
+        del self.quantityEntries[int(i)-1]
+        self.lastEditedEntries[int(i)-1].destroy()
+        del self.lastEditedEntries[int(i)-1]
 
 
 def replaceData(itemID, itemDataType, newData): #replaces a data entry in data.json with a new value
