@@ -1,3 +1,4 @@
+import bleak
 import customtkinter as ctk
 import pandas as pd
 import json
@@ -127,13 +128,23 @@ async def connecttoBandageDevice():
         while True:
             await asyncio.sleep(0.001)
 
-async def connecttoPillDevice():
-    async with BleakClient("08:B6:1F:81:42:AE") as client:
+connectedToPillDevice = False
+
+async def connectToPillDevice():
+    def disconnectedFromPill(disconnectArg):
+        global connectedToPillDevice
+        print("disconnected from Pill Device")
+        connectedToPillDevice = False
+
+    async with BleakClient("08:B6:1F:81:42:AE", disconnected_callback=disconnectedFromPill) as client:
         print("connected to Pill Device")
+        global connectedToPillDevice
+        connectedToPillDevice = True
         await client.start_notify("19b10004-e8f2-537e-4f6c-d104768a1214", handle_Dispensed_change)
         await client.start_notify("19b10005-e8f2-537e-4f6c-d104768a1214", handle_Pill_reset_change)
-        pill_dispenser = True
-        while True:
+        #pill_dispenser = True
+
+        while connectedToPillDevice:
             await asyncio.sleep(0.001)
 
 async def connecttoCreamMeasurer():
@@ -1034,13 +1045,20 @@ def handle_Distance_change(sender, data):
     home.refresh()
 
 def bandageThread():
-    asyncio.run(connecttoBandageDevice())
+    while True:
+        asyncio.run(connecttoBandageDevice())
 
 def pillThread():
-    asyncio.run(connecttoPillDevice())
+    while True:
+        try:
+            print("trying to connect to pill...")
+            asyncio.run(connectToPillDevice())
+        except Exception as error: 
+            print("Pill device error: " + str(error))
 
 def creamThread():
-    asyncio.run(connecttoCreamMeasurer())
+    while True:
+        asyncio.run(connecttoCreamMeasurer())
 
 def calcBandage(increments):
     diameter = 24 #mm
@@ -1052,13 +1070,13 @@ def calcBandage(increments):
 
 if __name__ == "__main__":
     t1 = Thread(target = bandageThread)
-    t1.start()
+    #t1.start()
 
     t2 = Thread(target = pillThread)
     t2.start()
     
     t3 = Thread(target = creamThread)
-    t3.start()
+    #t3.start()
     
     home = Home()
     home.mainloop()
