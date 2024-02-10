@@ -115,7 +115,6 @@ isLoggedIn = False
 tableRows = 0
 tableCols = 0
 bandage_connected = False
-pill_dispenser = False
 
 async def connecttoBandageDevice():
     async with BleakClient("58:BF:25:9C:4E:C6") as client:
@@ -142,7 +141,6 @@ async def connectToPillDevice():
         connectedToPillDevice = True
         await client.start_notify("19b10004-e8f2-537e-4f6c-d104768a1214", handle_Dispensed_change)
         await client.start_notify("19b10005-e8f2-537e-4f6c-d104768a1214", handle_Pill_reset_change)
-        #pill_dispenser = True
 
         while connectedToPillDevice:
             await asyncio.sleep(0.001)
