@@ -116,15 +116,23 @@ tableRows = 0
 tableCols = 0
 bandage_connected = False
 
+connectedToBandageDevice = False
+
 async def connecttoBandageDevice():
-    async with BleakClient("58:BF:25:9C:4E:C6") as client:
+    def disconnectedFromBandage(disconnectArg):
+        global connectedToBandageDevice
+        print("disconnected from Bandage Device")
+        connectedToBandageDevice = False
+
+    async with BleakClient("58:BF:25:9C:4E:C6", disconnected_callback=disconnectedFromBandage) as client:
+        global connectedToBandageDevice
+        connectedToBandageDevice = True
         await client.start_notify("19b10001-e8f2-537e-4f6c-d104768a1214", handle_rotation_change)
         await client.start_notify("19B10002-E8F2-537E-4F6C-D104768A1214", handle_bandage_reset_change)
-        
         print("connected to Bandage Device")
         bandage_connected = True
         # Continuously run the loop while True:
-        while True:
+        while connectedToBandageDevice:
             await asyncio.sleep(0.001)
 
 connectedToPillDevice = False
@@ -141,11 +149,16 @@ async def connectToPillDevice():
         connectedToPillDevice = True
         await client.start_notify("19b10004-e8f2-537e-4f6c-d104768a1214", handle_Dispensed_change)
         await client.start_notify("19b10005-e8f2-537e-4f6c-d104768a1214", handle_Pill_reset_change)
-
         while connectedToPillDevice:
             await asyncio.sleep(0.001)
 
+connectedToCreamMeasurer = False
+
 async def connecttoCreamMeasurer():
+    def disconnectedFromCream(disconnectArg):
+        global connectedToCreamMeasurer
+        print("disconnected from Cream Measurer", disconnected_callback=disconnectedFromCream)
+        connectedToCreamMeasurer = False
     async with BleakClient("30:C6:F7:02:FD:52") as client:
         print("connected to Cream Measurer")
         await client.start_notify("19b10007-e8f2-537e-4f6c-d104768a1214", handle_Distance_change)
@@ -1049,19 +1062,27 @@ def handle_Distance_change(sender, data):
 
 def bandageThread():
     while True:
-        asyncio.run(connecttoBandageDevice())
+        try:
+            print("trying to connect to Bandage Device...")
+            asyncio.run(connecttoBandageDevice())
+        except Exception as error: 
+            print("Bandage device error: " + str(error))
 
 def pillThread():
     while True:
         try:
-            print("trying to connect to pill...")
+            print("trying to connect to Pill Device...")
             asyncio.run(connectToPillDevice())
         except Exception as error: 
             print("Pill device error: " + str(error))
 
 def creamThread():
     while True:
-        asyncio.run(connecttoCreamMeasurer())
+        try:
+            print("trying to connect to Cream Device...")
+            asyncio.run(connecttoCreamMeasurer())
+        except Exception as error: 
+            print("Cream device error: " + str(error))
 
 def calcBandage(increments):
     diameter = 24 #mm
@@ -1104,10 +1125,10 @@ def calcCream(increments):
 
 if __name__ == "__main__":
     t1 = Thread(target = bandageThread)
-    #t1.start()
+    t1.start()
 
     t2 = Thread(target = pillThread)
-    #t2.start()
+    t2.start()
     
     t3 = Thread(target = creamThread)
     t3.start()
