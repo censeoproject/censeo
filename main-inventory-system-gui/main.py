@@ -22,7 +22,7 @@ ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("dark-blue")
 
 #TO RESET DATA.JSON: comment out the ''' in the line below, save, and run once
-'''
+
 available_supplies = {
     1: {
         "name": "Cream 1",
@@ -1022,7 +1022,14 @@ def readID(i): #returns the id of the ith item
 def handle_rotation_change(sender, data):
     rotation = struct.unpack('<L', data)
     print(rotation[0])
-    replaceData("3", "quantity", rotation[0])
+    if (rotation[0]<4294967295/2):
+        deltaLength = 9144 - calcBandage(rotation[0])
+    else:
+        deltaLength = 9144 - calcBandage(4294967294-4294967295)
+    if (deltaLength > 0):
+        replaceData("3", "quantity", deltaLength)
+    else:
+        replaceData("3", "quantity", 0)
     
     home.refresh()
 
@@ -1030,7 +1037,7 @@ def handle_bandage_reset_change(sender, data):
     print(data)
     reset = struct.unpack('<b', data)
     print(reset[0])
-    replaceData("3", "quantity", 0)
+    replaceData("3", "quantity", 9144)
 
     home.refresh()
 
@@ -1041,7 +1048,10 @@ def handle_Dispensed_change(sender, data):
     currentQuantity = int(readData("2", "quantity"))
     print("currentQuantity=%s" % currentQuantity)
     currentQuantity = currentQuantity - 1
-    replaceData("2", "quantity", str(currentQuantity))
+    if (currentQuantity > 0):
+        replaceData("2", "quantity", str(currentQuantity))
+    else:
+        replaceData("2", "quantity", 0)
     
     home.refresh()
 
@@ -1090,7 +1100,7 @@ def calcBandage(increments):
     incrementsPerRotation = 30
     incrementLength = diameter*pi/incrementsPerRotation
     deltaLength = incrementLength*increments
-    return deltaLength
+    return int(deltaLength)
 
 def calcCream(increments):
         totalIncrements = 12
@@ -1128,10 +1138,10 @@ if __name__ == "__main__":
     t1.start()
 
     t2 = Thread(target = pillThread)
-    t2.start()
+    #t2.start()
     
     t3 = Thread(target = creamThread)
-    t3.start()
+    #t3.start()
     
     home = Home()
     home.mainloop()
