@@ -27,7 +27,7 @@ available_supplies = {
     1: {
         "name": "Cream 1",
         "category": "cream",
-        "quantity": 1,
+        "quantity": 132,
         "refillSize": 50,
         "date": "01/01/2023",
     },
@@ -854,29 +854,6 @@ class Home(ctk.CTk):
     def update(self):
         self.refresh()
 
-    def calculate(self):
-        r = 18
-        w = 54
-        l1 = 175
-        l2 = 165
-        #total length = 175
-
-        upperz1 = l1
-        uppery1 = lambda z: (-r)*z/l1+r
-        upperx1 = lambda z, y: (w/2-r)*z/l1+r
-
-        upperz2 = l2
-        uppery2 = lambda z: (-r)*z/l2+r
-        upperx2 = lambda z, y: (w/2-r)*z/l2+r
-
-        f = lambda z, y, x: 1
-
-        solve1 = integrate.tplquad(f, 0, upperz1, 0, uppery1, 0, upperx1)
-        solve2 = integrate.tplquad(f, 0, upperz2, 0, uppery2, 0, upperx2)
-        solution = 4*(solve1[0]-solve2[0])/1000
-        error = solve1[1]+solve2[1]
-        print(solution)
-
     def addItem(self):
         print("addItem")
 
@@ -1066,8 +1043,9 @@ def handle_Distance_change(sender, data):
     print(data)
     Moved = struct.unpack('<L', data)
     print(Moved)
-    replaceData("1", "quantity", Moved)
-    home.refresh()
+    if(calcCream(Moved[0])<readData("1", "quantity")):
+        replaceData("1", "quantity", calcCream(Moved[0]))
+        home.refresh()
 
 def bandageThread():
     while True:
@@ -1093,15 +1071,46 @@ def calcBandage(increments):
     deltaLength = incrementLength*increments
     return deltaLength
 
+def calcCream(increments):
+        totalIncrements = 12
+        incrementLength = int(175/totalIncrements)
+
+        if (increments<=totalIncrements):
+            r = 18
+            w = 54
+            l1 = 175-increments*incrementLength
+            l2 = 0.001
+            #total length = 175
+
+            upperz1 = l1
+            uppery1 = lambda z: (-r)*z/l1+r
+            upperx1 = lambda z, y: (w/2-r)*z/l1+r
+
+            upperz2 = l2
+            uppery2 = lambda z: (-r)*z/l2+r
+            upperx2 = lambda z, y: (w/2-r)*z/l2+r
+
+            f = lambda z, y, x: 1
+
+            solve1 = integrate.tplquad(f, 0, upperz1, 0, uppery1, 0, upperx1)
+            solve2 = integrate.tplquad(f, 0, upperz2, 0, uppery2, 0, upperx2)
+            solution = 4*(solve1[0]-solve2[0])/1000
+            error = solve1[1]+solve2[1]
+            print(int(solution))
+            return(int(solution))
+        else:
+            print("Error: increments out of range")
+            return readData("1", "quantity")
+
 if __name__ == "__main__":
     t1 = Thread(target = bandageThread)
     #t1.start()
 
     t2 = Thread(target = pillThread)
-    t2.start()
+    #t2.start()
     
     t3 = Thread(target = creamThread)
-    #t3.start()
+    t3.start()
     
     home = Home()
     home.mainloop()
