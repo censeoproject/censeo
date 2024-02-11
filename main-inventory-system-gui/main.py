@@ -162,6 +162,7 @@ async def connecttoCreamMeasurer():
     async with BleakClient("30:C6:F7:02:FD:52") as client:
         print("connected to Cream Measurer")
         await client.start_notify("19b10007-e8f2-537e-4f6c-d104768a1214", handle_Distance_change)
+        await client.start_notify("19b10008-e8f2-537e-4f6c-d104768a1214", handle_cream_reset_change)
         Cream_Measurer = True
         while True:
             await asyncio.sleep(0.001)
@@ -1059,6 +1060,15 @@ def handle_Distance_change(sender, data):
     if(calcCream(Moved[0])<readData("1", "quantity")):
         replaceData("1", "quantity", calcCream(Moved[0]))
         home.refresh()
+
+def handle_cream_reset_change(sender, data):
+    print(data)
+    Cream_reset = struct.unpack('<b', data)
+    print(Cream_reset[0])
+    replaceData("1", "quantity", 132)
+    home.refresh()
+    
+
 
 def bandageThread():
     while True:
