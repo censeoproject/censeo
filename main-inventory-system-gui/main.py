@@ -22,7 +22,7 @@ ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("dark-blue")
 
 #TO RESET DATA.JSON: comment out the ''' in the line below, save, and run once
-
+'''
 available_supplies = {
     1: {
         "name": "Cream 1",
@@ -34,14 +34,14 @@ available_supplies = {
     2: {
         "name": "Pill 1",
         "category": "pill",
-        "quantity": 10,
+        "quantity": 50,
         "refillSize": 100,
         "date": "01/01/2023",
     },
     3: {
         "name": "Bandage",
         "category": "other",
-        "quantity": 50,
+        "quantity": 9144,
         "refillSize": 25,
         "date": "01/01/2023",
     },
@@ -156,11 +156,13 @@ connectedToCreamMeasurer = False
 
 async def connecttoCreamMeasurer():
     def disconnectedFromCream(disconnectArg):
+        print("disconnected from Cream Measurer")
         global connectedToCreamMeasurer
-        print("disconnected from Cream Measurer", disconnected_callback=disconnectedFromCream)
         connectedToCreamMeasurer = False
-    async with BleakClient("30:C6:F7:02:FD:52") as client:
+    async with BleakClient("30:C6:F7:02:FD:52", disconnected_callback=disconnectedFromCream) as client:
         print("connected to Cream Measurer")
+        global connectedToCreamDevice
+        connectedToCreamDevice = True
         await client.start_notify("19b10007-e8f2-537e-4f6c-d104768a1214", handle_Distance_change)
         await client.start_notify("19b10008-e8f2-537e-4f6c-d104768a1214", handle_cream_reset_change)
         Cream_Measurer = True
@@ -1148,10 +1150,10 @@ if __name__ == "__main__":
     t1.start()
 
     t2 = Thread(target = pillThread)
-    #t2.start()
+    t2.start()
     
     t3 = Thread(target = creamThread)
-    #t3.start()
+    t3.start()
     
     home = Home()
     home.mainloop()
