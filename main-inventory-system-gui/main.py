@@ -28,6 +28,7 @@ available_supplies = {
         "name": "Cream 1",
         "category": "cream",
         "quantity": 132,
+        "unit": "mL",
         "refillSize": 50,
         "date": "01/01/2023",
     },
@@ -35,6 +36,7 @@ available_supplies = {
         "name": "Pill 1",
         "category": "pill",
         "quantity": 50,
+        "unit": "pills",
         "refillSize": 100,
         "date": "01/01/2023",
     },
@@ -42,6 +44,7 @@ available_supplies = {
         "name": "Bandage",
         "category": "other",
         "quantity": 9144,
+        "unit": "mm",
         "refillSize": 25,
         "date": "01/01/2023",
     },
@@ -49,6 +52,7 @@ available_supplies = {
         "name": "Cream 2",
         "category": "cream",
         "quantity": 50,
+        "unit": "mL",
         "refillSize": 25,
         "date": "01/01/2023",
     },
@@ -56,6 +60,7 @@ available_supplies = {
         "name": "Pill 2",
         "category": "pill",
         "quantity": 100,
+        "unit": "pills",
         "refillSize": 50,
         "date": "01/01/2023",
     },
@@ -63,6 +68,7 @@ available_supplies = {
         "name": "Cream 3",
         "category": "cream",
         "quantity": 75,
+        "unit": "mL",
         "refillSize": 25,
         "date": "01/01/2023",
     },
@@ -70,6 +76,7 @@ available_supplies = {
         "name": "Pill 3",
         "category": "pill",
         "quantity": 70,
+        "unit": "pills",
         "refillSize": 50,
         "date": "01/01/2023",
     },
@@ -77,12 +84,14 @@ available_supplies = {
         "name": "Cream 4",
         "category": "cream",
         "quantity": 90,
+        "unit": "mL",
         "refillSize": 50,
         "date": "01/01/2023",
     },
     9: {
         "name": "Pill 4",
         "category": "pill",
+        "unit": "pills",
         "quantity": 50,
         "refillSize": 10,
         "date": "01/01/2023",
@@ -90,6 +99,7 @@ available_supplies = {
     10: {
         "name": "Pill 5",
         "category": "pill",
+        "unit": "mL",
         "quantity": 60,
         "refillSize": 40,
         "date": "12/06/2023",
@@ -449,6 +459,10 @@ class AddItem(ctk.CTkToplevel):
         quantityEntry.pack(pady=12, padx=10)
         self.quantityEntry = quantityEntry
 
+        unitEntry = ctk.CTkEntry(master=addItemFrame, placeholder_text="Unit")
+        unitEntry.pack(pady=12, padx=10)
+        self.unitEntry = unitEntry
+
         # Change category from entry to dropdown for final product.
         categoryEntry = ctk.CTkEntry(master=addItemFrame, placeholder_text="Category")
         categoryEntry.pack(pady=12, padx=10)
@@ -467,6 +481,8 @@ class AddItem(ctk.CTkToplevel):
         name = self.nameEntry.get()
         self.name = name
         tempQuantity = self.quantityEntry.get() #tempQuantity will be a string
+        unit = self.unitEntry.get()
+        self.unit = unit
         category = self.categoryEntry.get()
         self.category = category
         date = self.dateEntry.get()
@@ -496,6 +512,8 @@ class AddItem(ctk.CTkToplevel):
         return self.name
     def getQuantity(self):
         return self.quantity
+    def getUnit(self):
+        return self.unit
     def getCategory(self):
         return self.category
     def getDate(self):
@@ -672,7 +690,8 @@ class Home(ctk.CTk):
             table.grid(row=i, column=4, padx=5)
             supplyID = i
             quantity = data[supplyID]["quantity"]
-            table.insert(ctk.END, str(quantity))
+            unit = data[supplyID]["unit"]
+            table.insert(ctk.END, str(quantity)+" "+unit)
             table.configure(state="disabled")
             self.quantityEntries.append(table)
 
@@ -837,7 +856,7 @@ class Home(ctk.CTk):
             for j in data.keys():
                 if (str(i+1)==j):
                     id = j
-            quantityEntry.insert(ctk.END, data[id]["quantity"])
+            quantityEntry.insert(ctk.END, str(data[id]["quantity"])+" "+data[id]["unit"])
             quantityEntry.configure(state="disabled")
 
         #Categories
@@ -884,15 +903,25 @@ class Home(ctk.CTk):
 
         data[str(len(data.keys())+1)] = {
             "name": self.addItem_window.getName(),
-            "category": self.addItem_window.getCategory(),
             "quantity": self.addItem_window.getQuantity(),
+            "unit": self.addItem_window.getUnit(),
+            "category": self.addItem_window.getCategory(),
             "date": self.addItem_window.getDate(),
         }
 
         r = len(data.keys())
         id = str(r)
 
-        removeButton = ctk.CTkButton(master=scrollFrame, text="-", command=lambda:self.enterRemoveItem(r), font=(main_font, 20), fg_color="#0b5394", width=30)
+        js = json.dumps(data)
+        fd = open("data.json", "w")
+        fd.write(js)
+        fd.close()
+        fd = open("data.json", "r")
+        txt = fd.read()
+        data = json.loads(txt)
+        fd.close()
+
+        removeButton = ctk.CTkButton(master=scrollFrame, text="-", command=self.enterRemoveItem(r), font=(main_font, 20), fg_color="#0b5394", width=30)
         removeButton.grid(row=r, column=1, padx=(70,5))
 
         idTable = ctk.CTkEntry(self.scrollFrame, width=100, font=(self.main_font, 14))
@@ -913,7 +942,8 @@ class Home(ctk.CTk):
         quantityTable.grid(row=r, column=4, padx=5)
         supplyID = id
         quantity = data[supplyID]["quantity"]
-        quantityTable.insert(ctk.END, str(quantity))
+        unit = data[supplyID]["unit"]
+        quantityTable.insert(ctk.END, str(quantity)+" "+unit)
         quantityTable.configure(state="disabled")
         self.quantityEntries.append(quantityTable)
 
@@ -1147,10 +1177,10 @@ def calcCream(increments):
 
 if __name__ == "__main__":
     t1 = Thread(target = bandageThread)
-    t1.start()
+    #t1.start()
 
     t2 = Thread(target = pillThread)
-    t2.start()
+    #t2.start()
     
     t3 = Thread(target = creamThread)
     t3.start()
