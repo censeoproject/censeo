@@ -153,7 +153,7 @@ async def connectToPillDevice():
         print("disconnected from Pill Device")
         connectedToPillDevice = False
 
-    async with BleakClient("08:B6:1F:81:42:AE", disconnected_callback=disconnectedFromPill) as client:
+    async with BleakClient("34:94:54:27:F7:8A", disconnected_callback=disconnectedFromPill) as client:
         print("connected to Pill Device")
         global connectedToPillDevice
         connectedToPillDevice = True
@@ -161,6 +161,9 @@ async def connectToPillDevice():
         await client.start_notify("19b10005-e8f2-537e-4f6c-d104768a1214", handle_Pill_reset_change)
         while connectedToPillDevice:
             await asyncio.sleep(0.001)
+
+
+
 
 connectedToCreamMeasurer = False
 
@@ -1085,7 +1088,7 @@ def handle_Dispensed_change(sender, data):
         replaceData("2", "quantity", str(currentQuantity))
     else:
         replaceData("2", "quantity", 0)
-    
+    #Write new quantity to peripheral characteristic
     home.refresh()
 
 def handle_Pill_reset_change(sender, data):
@@ -1180,10 +1183,10 @@ if __name__ == "__main__":
     #t1.start()
 
     t2 = Thread(target = pillThread)
-    #t2.start()
+    t2.start()
     
     t3 = Thread(target = creamThread)
-    t3.start()
+    #t3.start()
     
     home = Home()
     home.mainloop()
