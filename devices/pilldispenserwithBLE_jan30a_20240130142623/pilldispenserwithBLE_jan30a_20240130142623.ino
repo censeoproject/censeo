@@ -1,21 +1,19 @@
+//Bluetooth library
 #include <ArduinoBLE.h>
 
 
 
 
-#define LEDPIN 10
-// Pin 13: Arduino has an LED connected on pin 13
-// Pin 11: Teensy 2.0 has the LED on pin 11
-// Pin  6: Teensy++ 2.0 has the LED on pin 6
-// Pin 13: Teensy 3.0 has the LED on pin 13
-
-#define SENSORPIN 7
-
+//Pin definitions
+#define SENSORPIN 2
+#define ConnectedLED 3
+#define DispensedLED 4
+#define ResetLED 5
+#define buttonPin 6
 
 
-const int ledPin = 5;
+
 // variables will change :
-const int buttonPin = 6;
 int buttonState;
 int lastButtonState = LOW;
 bool buttonPressed = false;
@@ -25,40 +23,37 @@ bool dispensed = false;
 unsigned long lastDebounceTime = 0;  // the last time the output pin was toggled
 unsigned long debounceDelay = 50;    // the debounce time; increase if the output flickers
 
-
 // Add characteristics for bluetooth
 BLEService PillService("19B10003-E8F2-537E-4F6C-D104768A1214"); // BLE LED Service
 // BLE Dispensed Characteristic - custom 128-bit UUID, read and writable by central
 BLEByteCharacteristic DispensedCharacteristic("19b10004-e8f2-537e-4f6c-d104768a1214", BLERead | BLENotify | BLEWrite);
+BLEByteCharacteristic QuantityCharacteristic("19b10006-e8f2-537e-4f6c-d104768a1214", BLERead | BLENotify | BLEWrite);
 BLEByteCharacteristic PillResetCharacteristic("19b10005-e8f2-537e-4f6c-d104768a1214", BLERead | BLENotify | BLEWrite);
 
 
 void setup() {
- 
-	// initialize the LED pin as an output:
-	pinMode(LEDPIN, OUTPUT);
-	// initialize the sensor pin as an input:
-	pinMode(SENSORPIN, INPUT);
-	// initialize the digital pin 12 as an output.
-	pinMode(12, OUTPUT);
-	// initialize the LED pin as an output
-	pinMode(ledPin, OUTPUT);
-	// initialize the pushbutton pin as an input
+  //Serial start:
+  Serial.begin(9600);
 
-  pinMode (buttonPin,INPUT);
+  //Pin modes & initial digital writes:
+	pinMode(SENSORPIN, INPUT_PULLUP);
+  pinMode(ConnectedLED, OUTPUT);
+  pinMode(DispensedLED, OUTPUT);
+  pinMode(ResetLED, OUTPUT);
 
 	digitalWrite(SENSORPIN, HIGH); // turn on the pullup
 
+  //Low energy Peripheral Bluetooth device start
 	BLEDevice peripheral = BLE.available();
-  Serial.begin(9600);
   BLE.begin();
   //set advertised local name and service UUID:
   BLE.setLocalName("Pill Dispenser");
   BLE.setAdvertisedService(PillService);
   // add the characteristic to the service
   PillService.addCharacteristic(DispensedCharacteristic);
+  PillService.addCharacteristic(QuantityCharacteristic);
   PillService.addCharacteristic(PillResetCharacteristic);
-  //PillService.addCharacteristic(PillResetCharacteristic);
+  
   // add service
   BLE.addService(PillService);
   // start advertising
@@ -68,8 +63,8 @@ void setup() {
 
 }
 
-void loop()
-{
+void loop(){
+
   BLEDevice central = BLE.central(); 
 	// read the state of the pushbutton value:
 	sensorState = digitalRead(SENSORPIN);
@@ -98,8 +93,8 @@ void loop()
 
       // only toggle the LED if the new button state is HIGH
       if (buttonState == HIGH) {
-        Serial.println("11Button Pressed!");
         buttonPressed = true;
+        Serial.println("11Button Pressed!");
       }
     }
   }
@@ -110,22 +105,41 @@ void loop()
   if (sensorState && !lastState) {
     Serial.println("Unbroken");
     dispensed = false;
+    
+    byte quantity = 0;
+    QuantityCharacteristic.readValue(quantity);
+    Serial.print("quantity = ");
+    Serial.println(quantity);
+
+    if (quantity < 40) {
+      digitalWrite(ResetLED, HIGH);
+    }
+    else{
+      digitalWrite(ResetLED, LOW);
+    }
   } 
   if (!sensorState && lastState) {
-    Serial.println("Broken");
+    Serial.print("Broken, ");
     dispensed = true;
   }
+ 
   lastState = sensorState;
 
+
   if (central && central.connected()) {
+
+    digitalWrite(ConnectedLED, HIGH);
+    
+
     if (dispensed) {
       DispensedCharacteristic.writeValue((byte)0x01);
       dispensed = false;
     }
+
     if(buttonPressed) {
       PillResetCharacteristic.writeValue((byte)0x01);
       buttonPressed = false;
-
     }
+    
   }
 }

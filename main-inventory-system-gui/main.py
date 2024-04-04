@@ -146,6 +146,7 @@ async def connecttoBandageDevice():
             await asyncio.sleep(0.001)
 
 connectedToPillDevice = False
+pillClient = None
 
 async def connectToPillDevice():
     def disconnectedFromPill(disconnectArg):
@@ -157,6 +158,8 @@ async def connectToPillDevice():
         print("connected to Pill Device")
         global connectedToPillDevice
         connectedToPillDevice = True
+        global pillClient
+        pillClient = client
         await client.start_notify("19b10004-e8f2-537e-4f6c-d104768a1214", handle_Dispensed_change)
         await client.start_notify("19b10005-e8f2-537e-4f6c-d104768a1214", handle_Pill_reset_change)
         while connectedToPillDevice:
@@ -1079,13 +1082,15 @@ def handle_bandage_reset_change(sender, data):
 
     home.refresh()
 
-def handle_Dispensed_change(sender, data):
+async def handle_Dispensed_change(sender, data):
     print(data)
     Dispensed = struct.unpack('<b', data)
     print(Dispensed[0])
     currentQuantity = int(readData("2", "quantity"))
     print("currentQuantity=%s" % currentQuantity)
     currentQuantity = currentQuantity - 1
+    global pillClient
+    await pillClient.write_gatt_char("19b10006-e8f2-537e-4f6c-d104768a1214", currentQuantity.to_bytes(1, 'little'))
     if (currentQuantity > 0):
         replaceData("2", "quantity", str(currentQuantity))
     else:
