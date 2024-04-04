@@ -43,8 +43,8 @@ available_supplies = {
     3: {
         "name": "Bandage",
         "category": "other",
-        "quantity": 9144,
-        "unit": "mm",
+        "quantity": 360,
+        "unit": "in",
         "refillSize": 25,
         "date": "01/01/2023",
     },
@@ -424,6 +424,7 @@ class RecordUse(ctk.CTkToplevel):
         print("recordUse")
 
         addToData(self.id, "quantity", self.quantAdd-self.quantRem)
+        replaceData(self.id, "date", self.date)
 
         self.withdraw()
         global home
@@ -813,6 +814,7 @@ class Home(ctk.CTk):
     def enterRemoveItem(self):
         global isLoggedIn
         if isLoggedIn:
+            self.iconify()
             if self.removeItem_window is None or not self.removeItem_window.winfo_exists():
                 self.removeItem_window = RemoveItem(self)  # create window if its None or destroyed
             else:
@@ -924,7 +926,7 @@ class Home(ctk.CTk):
         data = json.loads(txt)
         fd.close()
 
-        removeButton = ctk.CTkButton(master=scrollFrame, text="-", command=self.enterRemoveItem(r), font=(main_font, 20), fg_color="#0b5394", width=30)
+        removeButton = ctk.CTkButton(master=scrollFrame, text="-", command=self.enterRemoveItem(), font=(main_font, 20), fg_color="#0b5394", width=30)
         removeButton.grid(row=r, column=1, padx=(70,5))
 
         idTable = ctk.CTkEntry(self.scrollFrame, width=100, font=(self.main_font, 14))
@@ -1059,9 +1061,9 @@ def handle_rotation_change(sender, data):
     rotation = struct.unpack('<L', data)
     print(rotation[0])
     if (rotation[0]<4294967295/2):
-        deltaLength = 9144 - calcBandage(rotation[0])
+        deltaLength = 360 - calcBandage(rotation[0])
     else:
-        deltaLength = 9144 - calcBandage(4294967294-4294967295)
+        deltaLength = 360 - calcBandage(4294967294-4294967295)
     if (deltaLength > 0):
         replaceData("3", "quantity", deltaLength)
     else:
@@ -1073,7 +1075,7 @@ def handle_bandage_reset_change(sender, data):
     print(data)
     reset = struct.unpack('<b', data)
     print(reset[0])
-    replaceData("3", "quantity", 9144)
+    replaceData("3", "quantity", 360)
 
     home.refresh()
 
@@ -1140,7 +1142,7 @@ def creamThread():
             print("Cream device error: " + str(error))
 
 def calcBandage(increments):
-    diameter = 24 #mm
+    diameter = 0.945 #in
     pi = 3.141
     incrementsPerRotation = 30
     incrementLength = diameter*pi/incrementsPerRotation
