@@ -162,6 +162,7 @@ async def connectToPillDevice():
         pillClient = client
         await client.start_notify("19b10004-e8f2-537e-4f6c-d104768a1214", handle_Dispensed_change)
         await client.start_notify("19b10005-e8f2-537e-4f6c-d104768a1214", handle_Pill_reset_change)
+        
         while connectedToPillDevice:
             await asyncio.sleep(0.001)
 
@@ -1102,7 +1103,8 @@ def handle_Pill_reset_change(sender, data):
     print(data)
     Pill_reset = struct.unpack('<b', data)
     print(Pill_reset[0])
-    replaceData("2", "quantity", 50)
+    currentQuantity = int(readData("2", "quantity"))
+    replaceData("2", "quantity", currentQuantity + 50)
     home.refresh()
 
 def handle_Distance_change(sender, data):
@@ -1187,10 +1189,10 @@ def calcCream(increments):
 
 if __name__ == "__main__":
     t1 = Thread(target = bandageThread)
-    #t1.start()
+    t1.start()
 
     t2 = Thread(target = pillThread)
-    t2.start()
+    #t2.start()
     
     t3 = Thread(target = creamThread)
     #t3.start()
