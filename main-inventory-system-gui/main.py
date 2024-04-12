@@ -158,8 +158,11 @@ async def connectToPillDevice():
         print("connected to Pill Device")
         global connectedToPillDevice
         connectedToPillDevice = True
+        currentQuantity = int(readData("2", "quantity"))
+        print("quantity sent to Pill device")
         global pillClient
         pillClient = client
+        await client.write_gatt_char("19b10006-e8f2-537e-4f6c-d104768a1214", currentQuantity.to_bytes(1, 'little'))
         await client.start_notify("19b10004-e8f2-537e-4f6c-d104768a1214", handle_Dispensed_change)
         await client.start_notify("19b10005-e8f2-537e-4f6c-d104768a1214", handle_Pill_reset_change)
         
@@ -1072,7 +1075,7 @@ def handle_rotation_change(sender, data):
         replaceData("3", "quantity", deltaLength)
     else:
         replaceData("3", "quantity", 0)
-    
+
     home.refresh()
 
 def handle_bandage_reset_change(sender, data):
@@ -1088,8 +1091,8 @@ async def handle_Dispensed_change(sender, data):
     Dispensed = struct.unpack('<b', data)
     print(Dispensed[0])
     currentQuantity = int(readData("2", "quantity"))
-    print("currentQuantity=%s" % currentQuantity)
     currentQuantity = currentQuantity - 1
+    print("currentQuantity=%s" % currentQuantity)
     global pillClient
     await pillClient.write_gatt_char("19b10006-e8f2-537e-4f6c-d104768a1214", currentQuantity.to_bytes(1, 'little'))
     if (currentQuantity > 0):
@@ -1192,10 +1195,10 @@ if __name__ == "__main__":
     t1.start()
 
     t2 = Thread(target = pillThread)
-    #t2.start()
+    t2.start()
     
     t3 = Thread(target = creamThread)
-    #t3.start()
+    t3.start()
     
     home = Home()
     home.mainloop()

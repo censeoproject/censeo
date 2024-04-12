@@ -6,8 +6,9 @@ int aLastState;
 // pin definitions for rotary encoder:
 #define outputA 2
 #define outputB 3
+#define ConnectedLED 8
 //pin definitions for reset buttton
-const int buttonPin = 5;
+const int buttonPin = 4;
 int buttonState;
 int lastButtonState = LOW;
 bool buttonPressed = false;
@@ -95,6 +96,7 @@ void loop() {
 
   // if a central is connected to peripheral:
   if (central && central.connected()) {
+    digitalWrite(ConnectedLED, HIGH);
     if (buttonPressed) {
         ResetCharacteristic.writeValue((byte)0x01);
         buttonPressed = false;
@@ -104,6 +106,7 @@ void loop() {
       RotationCharacteristic.writeValue((unsigned long)counter);
       rotated = false;
     }
+
     /*aState = digitalRead(outputA); // Reads the "current" state of the outputA
     // If the previous and the current state of the outputA are different, that means a Pulse has occured
     int reading = digialRead(buttonPin);
@@ -123,4 +126,8 @@ void loop() {
       
     }*/
   }
+  else{
+    digitalWrite(ConnectedLED, LOW);
+  }
+
 }
