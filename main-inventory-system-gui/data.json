@@ -10,7 +10,7 @@
     "2": {
         "name": "Pill 1",
         "category": "pill",
-        "quantity": 50,
+        "quantity": "80",
         "unit": "pills",
         "refillSize": 100,
         "date": "01/01/2023"
@@ -18,8 +18,8 @@
     "3": {
         "name": "Bandage",
         "category": "other",
-        "quantity": 9144,
-        "unit": "mm",
+        "quantity": 360,
+        "unit": "in",
         "refillSize": 25,
         "date": "01/01/2023"
     },
