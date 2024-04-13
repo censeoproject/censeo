@@ -162,7 +162,7 @@ async def connectToPillDevice():
         print("quantity sent to Pill device")
         global pillClient
         pillClient = client
-        await client.write_gatt_char("19b10006-e8f2-537e-4f6c-d104768a1214", currentQuantity.to_bytes(1, 'little'))
+        await client.write_gatt_char("19b10006e8f2-537e-4f6c-d104768a1214", currentQuantity.to_bytes(1, 'little'))
         await client.start_notify("19b10004-e8f2-537e-4f6c-d104768a1214", handle_Dispensed_change)
         await client.start_notify("19b10005-e8f2-537e-4f6c-d104768a1214", handle_Pill_reset_change)
         
@@ -176,17 +176,17 @@ connectedToCreamMeasurer = False
 
 async def connecttoCreamMeasurer():
     def disconnectedFromCream(disconnectArg):
-        print("disconnected from Cream Measurer")
         global connectedToCreamMeasurer
+        print("disconnected from Cream Measurer")
         connectedToCreamMeasurer = False
-    async with BleakClient("30:C6:F7:02:FD:52", disconnected_callback=disconnectedFromCream) as client:
+    async with BleakClient("08:B6:1F:81:47:BA", disconnected_callback=disconnectedFromCream) as client:
         print("connected to Cream Measurer")
         global connectedToCreamDevice
         connectedToCreamDevice = True
-        await client.start_notify("19b10007-e8f2-537e-4f6c-d104768a1214", handle_Distance_change)
-        await client.start_notify("19b10008-e8f2-537e-4f6c-d104768a1214", handle_cream_reset_change)
-        Cream_Measurer = True
-        while True:
+        await client.start_notify("19b10008-e8f2-537e-4f6c-d104768a1214", handle_Distance_change)
+        await client.start_notify("19b10009-e8f2-537e-4f6c-d104768a1214", handle_cream_reset_change)
+
+        while connectedToCreamDevice:
             await asyncio.sleep(0.001)
 
 refreshRequested = False
@@ -1196,7 +1196,7 @@ if __name__ == "__main__":
 
     t2 = Thread(target = pillThread)
     t2.start()
-    
+
     t3 = Thread(target = creamThread)
     t3.start()
     
