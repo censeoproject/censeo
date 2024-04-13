@@ -155,17 +155,16 @@ async def connectToPillDevice():
         connectedToPillDevice = False
 
     async with BleakClient("34:94:54:27:F7:8A", disconnected_callback=disconnectedFromPill) as client:
-        print("connected to Pill Device")
         global connectedToPillDevice
         connectedToPillDevice = True
         currentQuantity = int(readData("2", "quantity"))
         print("quantity sent to Pill device")
         global pillClient
         pillClient = client
-        await client.write_gatt_char("19b10006e8f2-537e-4f6c-d104768a1214", currentQuantity.to_bytes(1, 'little'))
+        await client.write_gatt_char("19b10006-e8f2-537e-4f6c-d104768a1214", currentQuantity.to_bytes(1, 'little'))
         await client.start_notify("19b10004-e8f2-537e-4f6c-d104768a1214", handle_Dispensed_change)
         await client.start_notify("19b10005-e8f2-537e-4f6c-d104768a1214", handle_Pill_reset_change)
-        
+        print("connected to Pill Device")
         while connectedToPillDevice:
             await asyncio.sleep(0.001)
 
@@ -1198,7 +1197,7 @@ if __name__ == "__main__":
     t2.start()
 
     t3 = Thread(target = creamThread)
-    t3.start()
+    #t3.start()
     
     home = Home()
     home.mainloop()
